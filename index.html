@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitHub Goldfish</title>
+<meta name="description" content="A pixel goldfish that swims through every public word on a GitHub account and flags document-control, blatant, organizational and systemic errors.">
+<style>
+:root {
+  --bg: #14110f;
+  --panel: #201a16;
+  --panel-2: #2a221c;
+  --line: #43352b;
+  --text: #f4ead8;
+  --muted: #bfae98;
+  --accent: #ffb347;
+  --lcd: #b7cf8a;
+  --lcd-ink: #1f3a1a;
+  --error: #ff8a80;
+  --warn: #ffd166;
+  --note: #8fc7ff;
+  --ok: #a5e08a;
+  --bezel: #e8742a;
+}
+:root[data-theme="light"] {
+  --bg: #fbf3e6;
+  --panel: #fffaf1;
+  --panel-2: #f3e7d3;
+  --line: #d9c4a5;
+  --text: #2b1d12;
+  --muted: #6a5640;
+  --accent: #b85a0a;
+  --error: #b3261e;
+  --warn: #8a5a00;
+  --note: #1d5fa8;
+  --ok: #2d6a1a;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #fbf3e6; --panel: #fffaf1; --panel-2: #f3e7d3; --line: #d9c4a5;
+    --text: #2b1d12; --muted: #6a5640; --accent: #b85a0a;
+    --error: #b3261e; --warn: #8a5a00; --note: #1d5fa8; --ok: #2d6a1a;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { margin: 0; font-size: 1.9rem; letter-spacing: .02em; }
+h2 { font-size: 1.15rem; margin: 28px 0 10px; }
+.sub { margin: 2px 0 20px; color: var(--muted); }
+code, .mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+a { color: var(--accent); }
+
+/* The handheld */
+.device {
+  background: var(--bezel); border-radius: 28px 28px 40px 40px;
+  padding: 18px 18px 14px; border: 4px solid #3a1d08;
+  box-shadow: 0 6px 0 #3a1d08;
+}
+.lcd-wrap { background: var(--lcd-ink); padding: 8px; border-radius: 10px; }
+canvas#tank {
+  display: block; width: 100%; height: auto; aspect-ratio: 160 / 72;
+  image-rendering: pixelated; border-radius: 4px; background: var(--lcd);
+}
+.device-foot { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-top: 10px; color: #2b1305; font-weight: 700; }
+.status { min-height: 1.5em; }
+
+/* Controls */
+.controls { display: grid; gap: 12px; grid-template-columns: 1fr; margin-top: 18px; }
+@media (min-width: 720px) { .controls { grid-template-columns: 1fr 1fr; } }
+label { display: block; font-size: .9rem; color: var(--muted); margin-bottom: 4px; }
+input[type=text], input[type=password], textarea {
+  width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line);
+  background: var(--panel); color: var(--text); font: inherit;
+}
+textarea { min-height: 84px; resize: vertical; }
+.hint { font-size: .85rem; color: var(--muted); margin: 4px 0 0; }
+button {
+  font: inherit; font-weight: 700; cursor: pointer; border-radius: 10px;
+  border: 2px solid #3a1d08; background: var(--accent); color: #2b1305; padding: 10px 18px;
+}
+button.secondary { background: var(--panel-2); color: var(--text); border-color: var(--line); font-weight: 600; }
+button:disabled { opacity: .55; cursor: progress; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--note); outline-offset: 2px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* Summary */
+.tiles { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
+@media (min-width: 720px) { .tiles { grid-template-columns: repeat(4, 1fr); } }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.tile b { display: block; font-size: 1.7rem; line-height: 1.1; }
+.tile span { color: var(--muted); font-size: .9rem; }
+.sevline { margin: 10px 0 0; color: var(--muted); }
+.sevline strong { color: var(--text); }
+
+/* Findings */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; align-items: center; }
+.chip { background: var(--panel); color: var(--text); border: 1px solid var(--line); font-weight: 600; padding: 6px 12px; border-radius: 999px; }
+.chip[aria-pressed="true"] { background: var(--accent); color: #2b1305; border-color: var(--accent); }
+.repo { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; margin: 14px 0; overflow: hidden; }
+.repo > header { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px 16px; background: var(--panel-2); }
+.repo h3 { margin: 0; font-size: 1.05rem; }
+.repo ul { list-style: none; margin: 0; padding: 0; }
+.finding { padding: 12px 16px; border-top: 1px solid var(--line); }
+.finding .top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 4px; }
+.badge { font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; padding: 2px 8px; border-radius: 6px; border: 1.5px solid currentColor; }
+.badge.error { color: var(--error); } .badge.warn { color: var(--warn); } .badge.note { color: var(--note); }
+.cat { font-size: .8rem; color: var(--muted); }
+.where { font-size: .85rem; }
+.msg { margin: 0; }
+.evidence { margin: 6px 0 0; padding: 6px 10px; border-radius: 8px; background: var(--bg); border: 1px solid var(--line); overflow-wrap: anywhere; font-size: .85rem; }
+.fix { margin: 6px 0 0; color: var(--ok); font-size: .92rem; }
+.empty { padding: 18px; text-align: center; color: var(--ok); font-weight: 700; }
+.coverage li { margin: 4px 0; }
+footer { margin-top: 40px; color: var(--muted); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 14px; }
+.sr { position: absolute; left: -9999px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>GitHub Goldfish</h1>
+  <p class="sub"><em>A pet app by Astra.</em> A goldfish swims through every public word on a GitHub account and tells you what is wrong, misplaced, or inconsistent.</p>
+
+  <section class="device" aria-label="The goldfish tank">
+    <div class="lcd-wrap"><canvas id="tank" width="160" height="72" role="img" aria-label="A pixel goldfish swimming in a tank"></canvas></div>
+    <div class="device-foot">
+      <span id="status" class="status" role="status" aria-live="polite">Ready. Press Release the goldfish.</span>
+      <span id="mood" class="mono">mood: happy</span>
+    </div>
+  </section>
+
+  <section class="controls" aria-label="Settings">
+    <div>
+      <label for="user">GitHub account to audit</label>
+      <input id="user" type="text" value="findastra" autocomplete="off" spellcheck="false">
+      <p class="hint">Public repos only. Goldfish reads what any visitor can read.</p>
+    </div>
+    <div>
+      <label for="token">GitHub token (optional)</label>
+      <input id="token" type="password" autocomplete="off" spellcheck="false">
+      <p class="hint">Only raises the rate limit (60 to 5,000 requests an hour). Held in memory, sent only to api.github.com, never saved. Needs no scopes.</p>
+    </div>
+    <div>
+      <label for="never">Words Goldfish must never find (one per line)</label>
+      <textarea id="never" spellcheck="false" placeholder="a legal name, an employer, a private address, a codename"></textarea>
+      <p class="hint">Saved in this browser only, never in the repo. Add your employer's name here: no work information in public repos.</p>
+    </div>
+    <div class="row" style="align-items:flex-end">
+      <button id="go" type="button">Release the goldfish</button>
+      <button id="copy" type="button" class="secondary" disabled>Copy report</button>
+      <button id="download" type="button" class="secondary" disabled>Download report.md</button>
+    </div>
+  </section>
+
+  <section id="results" hidden aria-label="Results">
+    <h2>What the goldfish found</h2>
+    <div class="tiles" id="tiles"></div>
+    <p class="sevline" id="sevline"></p>
+    <div class="filters" id="filters" role="group" aria-label="Filter by kind"></div>
+    <div id="repos"></div>
+    <h2>What the goldfish could not see</h2>
+    <ul class="coverage" id="coverage"></ul>
+  </section>
+
+  <footer>
+    <p><strong>Checks:</strong> Document control (missing or malformed required files, pet files, headings, stray copies and secrets files), Blatant (typos, doubled words, mojibake, placeholders, secrets, broken links and anchors, brand spellings, never-say words), Organizational (names, topics, homepage, stubs, profile list), Systemic (patterns across the whole account: license, apostrophes, dashes, description style, the Cage registry).</p>
+    <p><strong>Not checked:</strong> spelling beyond a short typo list and doubled words, external links (browsers cannot test them), issues, pull requests, wikis, releases, gists, commit messages, text inside images, private repos, the contents of live websites.</p>
+    <p>GitHub Goldfish v0.1.0, built 2026-10-07 by Claude Sonnet 5.5 (<code>claude-sonnet-5-5</code>) for Astra. MIT licensed.</p>
+  </footer>
+</main>
+
+<script id="engine">
+/* ===== Goldfish engine: pure functions + a fetcher. No DOM. Runs in a browser or in Node. ===== */
+const Goldfish = (() => {
+  const CATS = ['Document control', 'Blatant', 'Organizational', 'Systemic'];
+  const SEV_ORDER = { error: 0, warn: 1, note: 2 };
+  const PET_KEYS = ['pet', 'kind', 'owner', 'sprite', 'job', 'runs_on', 'entry', 'status', 'cage'];
+  const PET_STATUS = ['hatching', 'growing', 'grown'];
+  const HUB = 'findastra-pet-apps';
+  const TEXT_FILES = ['README.md', 'AGENTS.md', 'CLAUDE.md', 'SECURITY.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'pet.json'];
+  const MAX_MD = 20;
+  const MAX_BYTES = 200000;
+
+  /* ---------- text helpers ---------- */
+  const blank = (m) => m.replace(/[^\n]/g, ' ');
+  const maskCode = (t) =>
+    t.replace(/(^|\n)(```|~~~)[^\n]*\n[\s\S]*?(\n\2[^\n]*|$)/g, blank)
+     .replace(/`[^`\n]+`/g, blank);
+  const maskUrls = (t) =>
+    t.replace(/\]\([^)\n]*\)/g, (m) => ']' + ' '.repeat(m.length - 1))
+     .replace(/https?:\/\/[^\s)>\]]+/g, blank)
+     .replace(/<[^>\n]+>/g, blank);
+  const prose = (t) => maskUrls(maskCode(t));
+  const lineOf = (t, i) => t.slice(0, i).split('\n').length;
+  const clip = (s, n = 90) => (s.length > n ? s.slice(0, n - 1) + '…' : s);
+  const slug = (h) =>
+    h.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[`*]/g, '').trim().toLowerCase()
+     .replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s/g, '-');
+  const words = (s) => (s.toLowerCase().match(/[a-z0-9]+/g) || []);
+
+  function headings(md) {
+    const out = [];
+    const masked = maskCode(md);
+    masked.split('\n').forEach((ln, i) => {
+      const m = /^(#{1,6})[ \t]+(.+?)[ \t]*#*[ \t]*$/.exec(ln);
+      if (m) out.push({ level: m[1].length, text: md.split('\n')[i].replace(/^#+[ \t]+/, '').trim(), line: i + 1 });
+    });
+    return out;
+  }
+  function slugSet(md) {
+    const seen = {}, set = new Set();
+    for (const h of headings(md)) {
+      let s = slug(h.text);
+      if (seen[s] !== undefined) { seen[s]++; s = `${s}-${seen[s]}`; } else seen[s] = 0;
+      set.add(s);
+    }
+    return set;
+  }
+
+  /* ---------- finding collector ---------- */
+  function makeSink() {
+    const list = [];
+    const add = (cat, sev, repo, where, msg, extra = {}) => list.push({ cat, sev, repo, where, msg, ...extra });
+    return { list, add };
+  }
+
+  /* ---------- per-text checks ---------- */
+  const SECRET_PATTERNS = [
+    ['GitHub token', /\bgh[pousr]_[A-Za-z0-9]{30,}\b/g],
+    ['GitHub fine-grained token', /\bgithub_pat_[A-Za-z0-9_]{30,}\b/g],
+    ['API key (sk-…)', /\bsk-(?:ant-|proj-)?[A-Za-z0-9_-]{24,}\b/g],
+    ['AWS access key', /\bAKIA[0-9A-Z]{16}\b/g],
+    ['Slack token', /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/g],
+    ['Discord bot token', /\b[MNO][A-Za-z\d_-]{23,25}\.[\w-]{6}\.[\w-]{27,}\b/g],
+    ['Private key block', /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/g],
+  ];
+  const BRANDS = [
+    ['Github', 'GitHub'], ['github', 'GitHub'], ['GITHUB', 'GitHub'], ['GitHUB', 'GitHub'],
+    ['discord', 'Discord'], ['Openai', 'OpenAI'], ['OpenAi', 'OpenAI'], ['openai', 'OpenAI'],
+    ['Chatgpt', 'ChatGPT'], ['ChatGpt', 'ChatGPT'], ['chatgpt', 'ChatGPT'],
+    ['Vrchat', 'VRChat'], ['vrchat', 'VRChat'], ['VRchat', 'VRChat'], ['VrChat', 'VRChat'],
+    ['Javascript', 'JavaScript'], ['Typescript', 'TypeScript'],
+    ['Vscode', 'VS Code'], ['VSCode', 'VS Code'], ['Macos', 'macOS'], ['MacOS', 'macOS'],
+    ['claude', 'Claude'], ['anthropic', 'Anthropic'],
+  ].map(([bad, good]) => [bad, good, new RegExp(`(?<![-\\w/.@#])${bad}(?![-\\w/@]|\\.\\w)`, 'g')]);
+  const TYPOS = { teh: 'the', recieve: 'receive', seperate: 'separate', definately: 'definitely', occured: 'occurred', adress: 'address', accomodate: 'accommodate', wich: 'which', becuase: 'because', thier: 'their', enviroment: 'environment', dependancy: 'dependency', refered: 'referred', untill: 'until', begining: 'beginning', existance: 'existence', succesful: 'successful', succesfully: 'successfully', publically: 'publicly', writting: 'writing', langauge: 'language', paramter: 'parameter', arguement: 'argument' };
+  const TYPO_RE = new RegExp(`\\b(${Object.keys(TYPOS).join('|')})\\b`, 'gi');
+
+  function textChecks(s, ctx, sink) {
+    const { text, repo, where, kind } = s; // kind: 'plain' | 'md'
+    if (!text) return;
+    const add = (cat, sev, msg, i, extra = {}) =>
+      sink.add(cat, sev, repo, where, msg, { line: kind === 'md' && i != null ? lineOf(text, i) : undefined, ...extra });
+    const p = kind === 'md' ? prose(text) : text.replace(/https?:\/\/\S+/g, blank);
+    const q = kind === 'md' ? maskCode(text) : text;
+    let m;
+
+    // mojibake and replacement characters
+    const moji = /(Ã[\u0080-¿]|â€[\u0080-¿™œ˜”“]|Â[ -¿]|�)/g;
+    while ((m = moji.exec(text))) add('Blatant', 'error', 'Garbled characters (mojibake or encoding damage).', m.index, { evidence: JSON.stringify(text.slice(Math.max(0, m.index - 20), m.index + 20)), fix: 'Re-save the file as UTF-8 and retype the damaged characters.' });
+
+    // HTML entities in plain-text fields (they display literally there)
+    if (kind === 'plain') {
+      const ent = /&(#\d+|#x[0-9a-f]+|amp|quot|apos|lt|gt|nbsp);/gi;
+      while ((m = ent.exec(text))) add('Blatant', 'error', 'A literal HTML entity shows in plain text.', null, { evidence: clip(text), fix: 'Type the real character instead.' });
+    }
+
+    // doubled words on one line
+    const dbl = /\b([A-Za-z]{2,})[ \t]+\1\b/gi;
+    while ((m = dbl.exec(p))) {
+      if (['had', 'that'].includes(m[1].toLowerCase())) continue;
+      add('Blatant', 'warn', `Doubled word: "${m[1]} ${m[1]}".`, m.index, { evidence: clip(p.slice(Math.max(0, m.index - 25), m.index + 40).replace(/\n/g, ' ')) });
+    }
+
+    // common typos
+    while ((m = TYPO_RE.exec(p))) add('Blatant', 'warn', `Likely typo: "${m[1]}".`, m.index, { fix: `Did you mean "${TYPOS[m[1].toLowerCase()]}"?` });
+
+    // placeholders and unfinished text
+    const ph = /\b(TODO|FIXME|TBD|lorem ipsum)\b/gi;
+    while ((m = ph.exec(p))) add('Blatant', 'warn', `Unfinished text: "${m[1]}".`, m.index, { evidence: clip(p.slice(Math.max(0, m.index - 20), m.index + 50).replace(/\n/g, ' ')) });
+    const cs = /\bcoming soon\b/gi;
+    while ((m = cs.exec(p))) add('Blatant', 'note', 'Promise of future work ("coming soon") with no date.', m.index);
+    const tpl = /\{\{[^}\n]*\}\}|<(?:your|repo|username|name|insert)[-\w ]*>|\[(?:your|insert)[-\w ]*\]/gi;
+    while ((m = tpl.exec(q))) add('Blatant', 'error', 'Template placeholder left in public text.', m.index, { evidence: m[0] });
+
+    // present-tense claims with no date
+    if (kind === 'md') {
+      const pt = /\b(currently|right now|at the moment|as of now)\b/gi;
+      while ((m = pt.exec(p))) {
+        const ln = p.split('\n')[lineOf(p, m.index) - 1];
+        if (!/\b(19|20)\d\d\b/.test(ln)) add('Blatant', 'note', `Present-tense claim ("${m[1]}") with no date or source.`, m.index, { fix: 'Add "as of <date>" or link the source.' });
+      }
+    }
+
+    // brand spellings
+    for (const [bad, good, re] of BRANDS) {
+      re.lastIndex = 0;
+      while ((m = re.exec(p))) add('Blatant', 'warn', `Brand spelled "${bad}"; the usual spelling is "${good}".`, m.index, { evidence: clip(p.slice(Math.max(0, m.index - 25), m.index + 35).replace(/\n/g, ' ')) });
+    }
+
+    // secrets (raw text, including code blocks)
+    for (const [name, re] of SECRET_PATTERNS) {
+      re.lastIndex = 0;
+      while ((m = re.exec(text))) add('Blatant', 'error', `Looks like a secret: ${name}.`, m.index, { evidence: m[0].slice(0, 6) + '… (redacted)', fix: 'Revoke it now, then remove it from the file and from git history.' });
+    }
+
+    // personal data
+    const winPath = /\b[A-Za-z]:\\Users\\([^\\\s"'`<>|]+)/g;
+    while ((m = winPath.exec(text))) {
+      if (/^(%?username%?|you|name|user|public|default|your[-_ ]?name|<.*>)$/i.test(m[1])) continue;
+      add('Blatant', 'warn', 'A personal Windows user folder is public.', m.index, { evidence: m[0], fix: 'Replace with %USERPROFILE% or <you>.' });
+    }
+    const unixPath = /(?<![\w.:/-])\/(?:Users|home)\/([A-Za-z0-9._-]+)\//g;
+    while ((m = unixPath.exec(text))) {
+      if (/^(user|you|name|username|runner|ubuntu|shared|<.*>)$/i.test(m[1])) continue;
+      add('Blatant', 'warn', 'A personal home folder is public.', m.index, { evidence: m[0] });
+    }
+    const mail = /\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b/g;
+    while ((m = mail.exec(text))) {
+      if (/noreply|no-reply|@example\.|@users\.noreply\.github\.com|\.(test|invalid|local|example)$/i.test(m[0])) continue;
+      add('Blatant', 'warn', 'An email address is public.', m.index, { evidence: m[0] });
+    }
+
+    // never-say words (built-in plus the user's list)
+    for (const term of ctx.neverSay) {
+      const esc = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(`(?<![\\p{L}\\p{N}])${esc}(?![\\p{L}\\p{N}])`, 'giu');
+      while ((m = re.exec(text))) add('Blatant', 'error', `Contains a word you asked Goldfish never to find: "${term}".`, m.index, {
+        evidence: clip(text.slice(Math.max(0, m.index - 25), m.index + 35).replace(/\n/g, ' ')),
+        fix: 'Remove or replace it.',
+      });
+    }
+
+    if (kind === 'md') {
+      // unclosed code fence
+      const fences = (text.match(/^(```|~~~)/gm) || []).length;
+      if (fences % 2) add('Blatant', 'error', 'A code fence is opened and never closed; the rest of the page renders as code.', 0);
+      // heading without a space
+      const hws = /^#{1,6}[^\s#]/gm;
+      while ((m = hws.exec(q))) add('Blatant', 'warn', 'Heading is missing the space after #, so it will not render as a heading.', m.index, { evidence: clip(m[0] + text.slice(m.index + m[0].length, m.index + 40).split('\n')[0]) });
+      // empty link targets
+      const emp = /\[[^\]\n]+\]\(\s*\)/g;
+      while ((m = emp.exec(q))) add('Blatant', 'error', 'A link has no destination.', m.index, { evidence: m[0] });
+    }
+  }
+
+  /* ---------- link checks ---------- */
+  function resolvePath(fromPath, target) {
+    const base = target.startsWith('/') ? [] : fromPath.split('/').slice(0, -1);
+    for (const seg of target.replace(/^\//, '').split('/')) {
+      if (seg === '..') base.pop(); else if (seg && seg !== '.') base.push(seg);
+    }
+    return base.join('/');
+  }
+  function permutationOf(name, repoNames) {
+    const key = words(name).sort().join(' ');
+    return repoNames.find((r) => r.toLowerCase() !== name.toLowerCase() && words(r).sort().join(' ') === key);
+  }
+
+  function linkChecks(repo, path, text, ctx, sink) {
+    const { user, repoMap } = ctx;
+    const where = path;
+    const q = maskCode(text);
+    const mine = repoMap[repo];
+    const paths = mine && mine.tree ? mine.treeSet : null;
+    let m;
+
+    // absolute links to this account's repos
+    const gh = new RegExp(`https?://(?:www\\.)?github\\.com/${user}/([A-Za-z0-9._-]+?)(?:\\.git)?(?:/(blob|tree|raw)/([^/\\s)>\\]#]+)/([^\\s)>\\]#?]*))?(?=[\\s)>\\]#?"'<]|$)`, 'gi');
+    while ((m = gh.exec(q))) {
+      const [full, rawName, kind, branch, file] = m;
+      const name = rawName.replace(/[.,;:!]+$/, '');
+      const target = repoMap[name] || Object.values(repoMap).find((r) => r.name.toLowerCase() === name.toLowerCase());
+      const line = lineOf(text, m.index);
+      if (!target) {
+        const guess = permutationOf(name, Object.keys(repoMap));
+        sink.add('Blatant', 'error', repo, where, `Link to a repo that does not exist publicly: ${user}/${name}.`, {
+          line, evidence: full, fix: guess ? `Did you mean ${guess}? (same words, different order)` : 'Fix the name, publish the repo, or remove the link.' });
+        continue;
+      }
+      if (target.name !== name) sink.add('Document control', 'warn', repo, where, `Repo name case differs: link says "${name}", repo is "${target.name}".`, { line });
+      if (kind && target.tree && branch === target.default_branch && file) {
+        const f = decodeURIComponent(file).replace(/\/$/, '');
+        if (!target.treeSet.has(f)) sink.add('Blatant', 'error', repo, where, `Link points at a file that is not in ${target.name}: ${f}`, { line, evidence: full, fix: 'Fix the path, or add the file.' });
+      }
+    }
+    // GitHub Pages links
+    const pages = new RegExp(`https?://${user}\\.github\\.io/([A-Za-z0-9._-]+)`, 'gi');
+    while ((m = pages.exec(q))) {
+      if (!repoMap[m[1]] && m[1].toLowerCase() !== `${user}.github.io`) sink.add('Blatant', 'warn', repo, where, `Pages link names a repo that does not exist publicly: ${m[1]}.`, { line: lineOf(text, m.index), evidence: m[0] });
+    }
+    // in-page anchors
+    const slugs = slugSet(text);
+    const anc = /\]\(#([^)\s]+)\)/g;
+    while ((m = anc.exec(q))) {
+      const a = decodeURIComponent(m[1]).toLowerCase();
+      if (!slugs.has(a)) sink.add('Blatant', 'warn', repo, where, `Anchor link #${m[1]} matches no heading in this file.`, { line: lineOf(text, m.index) });
+    }
+    // relative links
+    if (!paths) return;
+    const rel = /(?:\]\(|\b(?:src|href)=")(?!https?:|mailto:|#|data:|\/\/)([^)"\s#?]+)/g;
+    while ((m = rel.exec(q))) {
+      const target = resolvePath(path, decodeURIComponent(m[1]));
+      if (!target || paths.has(target)) continue;
+      const ci = [...paths].find((p) => p.toLowerCase() === target.toLowerCase());
+      sink.add('Blatant', 'error', repo, where, ci ? `Relative link differs only by letter case (GitHub is case-sensitive): ${m[1]} vs ${ci}.` : `Relative link target is missing from the repo: ${m[1]}.`, { line: lineOf(text, m.index), fix: ci ? `Use ${ci}.` : 'Fix the path, or add the file.' });
+    }
+  }
+
+  /* ---------- the audit ---------- */
+  function audit(model) {
+    const sink = makeSink();
+    const { add } = sink;
+    const user = model.user;
+    const neverSay = (model.neverSay || []).map((s) => s.trim()).filter(Boolean);
+    const repos = model.repos.filter((r) => !r.fork);
+    const repoMap = {};
+    for (const r of repos) {
+      r.files = r.files || {};
+      r.treeSet = r.tree ? new Set(r.tree.flatMap((p) => { const out = [p]; let d = p; while (d.includes('/')) { d = d.slice(0, d.lastIndexOf('/')); out.push(d); } return out; })) : null;
+      repoMap[r.name] = r;
+    }
+    const ctx = { user, repoMap, neverSay };
+    const has = (r, f) => (r.treeSet ? r.treeSet.has(f) : r.files[f] != null);
+    const surfaces = []; // for systemic tallies
+    const S = (repo, where, text, kind) => { const s = { repo, where, text, kind }; if (text) { surfaces.push(s); textChecks(s, ctx, sink); } return s; };
+
+    /* profile */
+    const prof = model.profile || {};
+    for (const [k, v] of [['name', prof.name], ['bio', prof.bio], ['company', prof.company], ['location', prof.location]]) S('(profile)', `profile ${k}`, v, 'plain');
+    if (!prof.bio) add('Organizational', 'note', '(profile)', 'profile bio', 'The profile bio is empty, so the account says nothing about itself above the repos.', { fix: 'Add a one-line bio.' });
+
+    const registry = model.registry;
+    const petRepos = [];
+
+    for (const r of repos) {
+      const name = r.name;
+      const R = (where, text, kind) => S(name, where, text, kind);
+      const topics = r.topics || [];
+      const hasPetJson = r.files['pet.json'] != null;
+      const isPet = hasPetJson || topics.includes('pet-app'); // the Cage's own repo is a pet app too (the Friendly Farmer)
+      if (isPet) petRepos.push(r);
+
+      /* text surfaces */
+      R('repo description', r.description, 'plain');
+      R('repo homepage', r.homepage, 'plain');
+      const mdFiles = Object.keys(r.files).sort().filter((f) => r.files[f] != null && /\.md$/i.test(f));
+      for (const f of mdFiles) { R(f, r.files[f], 'md'); linkChecks(name, f, r.files[f], ctx, sink); }
+      let pet = null;
+      if (hasPetJson) {
+        try {
+          pet = JSON.parse(r.files['pet.json']);
+          const strs = []; (function walk(v) { if (typeof v === 'string') strs.push(v); else if (v && typeof v === 'object') Object.values(v).forEach(walk); })(pet);
+          R('pet.json', strs.join('\n'), 'plain');
+        } catch (e) {
+          add('Document control', 'error', name, 'pet.json', `pet.json is not valid JSON (${e.message.split('\n')[0]}).`, { fix: 'Fix the syntax so the Cage can read it.' });
+        }
+      }
+
+      /* ---- Document control ---- */
+      const readme = r.files['README.md'];
+      if (readme == null) {
+        add('Document control', 'error', name, 'README.md', 'No README.md. Visitors see an empty page.', { fix: 'Add a README that says what it is, how to run it, and its limits.' });
+      } else {
+        const hs = headings(readme);
+        const h1s = hs.filter((h) => h.level === 1);
+        if (!h1s.length) {
+          if (name !== user) add('Document control', 'warn', name, 'README.md', 'README has no top-level (#) title.', { fix: 'Start with "# Title".' });
+        } else {
+          if (h1s.length > 1) add('Document control', 'warn', name, 'README.md', `README has ${h1s.length} top-level titles; use one.`, { line: h1s[1].line });
+          if (hs[0].level !== 1) add('Document control', 'note', name, 'README.md', 'The first heading is not the title.', { line: hs[0].line });
+          // convention: title words include the repo name words
+          const tw = new Set(words(h1s[0].text.replace(/['’]/g, '')));
+          const nw = words(name.replace(/['’]/g, ''));
+          if (!nw.every((w) => tw.has(w) || tw.has(w + 's') || tw.has(w.replace(/s$/, '')))) add('Organizational', 'note', name, 'README.md', `README title "${clip(h1s[0].text, 60)}" does not echo the repo name "${name}" (house rule: title is the same words in Title Case).`, { line: h1s[0].line });
+        }
+        for (let i = 1; i < hs.length; i++) if (hs[i].level > hs[i - 1].level + 1) add('Document control', 'note', name, 'README.md', `Heading level jumps from ${hs[i - 1].level} to ${hs[i].level}: "${clip(hs[i].text, 50)}".`, { line: hs[i].line });
+      }
+      if (r.license == null || r.license === 'NOASSERTION') {
+        const why = r.license === 'NOASSERTION' ? 'GitHub cannot identify the license text (shows "Other").' : 'No LICENSE file.';
+        add('Document control', 'warn', name, 'LICENSE', why, { fix: 'Add a standard license file (house default: MIT, "Copyright (c) <year> findastra").' });
+      }
+      for (const f of ['AGENTS.md', 'CLAUDE.md']) if (isPet && !has(r, f)) add('Document control', 'warn', name, f, `No ${f}, so an assistant picking this up has no rules to follow.`);
+      if (!r.description) add('Document control', 'error', name, 'repo description', 'The repo has no description.', { fix: 'Add one plain sentence.' });
+      else if (r.description.length > 300) add('Document control', 'note', name, 'repo description', `The description is ${r.description.length} characters; GitHub cards cut it short.`);
+      if (r.default_branch !== 'main') add('Organizational', 'warn', name, 'default branch', `Default branch is "${r.default_branch}", not "main". Visitors land on a working branch.`, { fix: 'Merge to main and make main the default in repo Settings.' });
+      if (r.tree) {
+        for (const p of r.tree) {
+          if (/(^|\/)(\.env(\.(?!example|sample|template).*)?|id_rsa|id_ed25519|[^/]*\.pem|[^/]*\.p12|credentials\.json|secrets?\.(json|ya?ml))$/i.test(p)) add('Document control', 'error', name, p, 'A secrets-type file is committed.', { fix: 'Remove it, rotate anything inside it, and purge it from history.' });
+          else if (/(^|\/)(\.DS_Store|Thumbs\.db|desktop\.ini|node_modules)(\/|$)/.test(p)) add('Document control', 'warn', name, p, 'System junk or dependencies are committed.', { fix: 'Delete it and add it to .gitignore.' });
+          else if (/(\(\d+\)|[ _-]copy|[_-]final\d*|[_-]v\d+|[_-]old|[_-]backup|[_-]new)\.[A-Za-z0-9]+$/i.test(p)) add('Document control', 'warn', name, p, 'The file name looks like an uncontrolled copy or version.', { fix: 'Keep one current file; let git hold the history.' });
+        }
+        if (r.treeTruncated) add('Systemic', 'note', name, 'file list', 'The repo is large; GitHub truncated its file list, so file checks are partial.');
+      }
+
+      /* ---- Pet files ---- */
+      if (isPet) {
+        if (!topics.includes('pet-app')) add('Document control', 'error', name, 'topics', 'Has pet.json but not the GitHub topic "pet-app", so the Cage cannot find it.', { fix: 'Repo page, gear next to About, add topic pet-app.' });
+        if (!hasPetJson) add('Document control', 'error', name, 'pet.json', 'Tagged pet-app but has no pet.json.', { fix: 'Add pet.json (see findastra-pet-apps/PET-FILES.md).' });
+        if (pet) {
+          for (const k of PET_KEYS) if (pet[k] == null || pet[k] === '') add('Document control', 'error', name, 'pet.json', `pet.json is missing "${k}".`);
+          if (pet.kind != null && pet.kind !== 'pet-app') add('Document control', 'error', name, 'pet.json', `"kind" should be "pet-app", not "${pet.kind}".`);
+          if (pet.owner != null && pet.owner !== 'Astra') add('Document control', 'error', name, 'pet.json', `"owner" should be "Astra" (public credit), not "${pet.owner}".`);
+          if (pet.status && !PET_STATUS.includes(pet.status)) add('Document control', 'error', name, 'pet.json', `"status" should be hatching, growing or grown, not "${pet.status}".`);
+          if (pet.cage && (pet.cage.topic !== 'pet-app' || !pet.cage.home)) add('Document control', 'error', name, 'pet.json', '"cage" should be {"topic":"pet-app","home":"README.md"}.');
+          if (r.treeSet) {
+            for (const k of ['sprite', 'entry']) if (typeof pet[k] === 'string' && /^[\w./-]+\.\w+$/.test(pet[k]) && !r.treeSet.has(pet[k])) add('Document control', 'error', name, 'pet.json', `"${k}" points at ${pet[k]}, which is not in the repo.`);
+            if (pet.cage && pet.cage.home && !r.treeSet.has(pet.cage.home)) add('Document control', 'error', name, 'pet.json', `"cage.home" points at ${pet.cage.home}, which is not in the repo.`);
+          }
+          if (!pet.built_with) add('Document control', 'note', name, 'pet.json', 'No "built_with": record the model name and version that built this.');
+        }
+        if (readme != null) {
+          const head = readme.split('\n').filter((l) => l.trim()).slice(0, 8).join('\n');
+          if (!/A pet app by Astra/i.test(head)) add('Document control', 'error', name, 'README.md', 'README does not open with "*A pet app by Astra.*" (public credit line).', { fix: 'Put "*A pet app by Astra.*" right under the title.' });
+          const hs = headings(readme).map((h) => h.text);
+          if (!hs.some((h) => /run|start|install|use|get it|download|quick/i.test(h))) add('Document control', 'warn', name, 'README.md', 'README has no "how to run" section.');
+          if (!hs.some((h) => /limit|not done|known|what.*(can|doesn)/i.test(h))) add('Document control', 'warn', name, 'README.md', 'README has no "limits" section (what it cannot do or has not done).');
+        }
+        const modelRe = /\b(Claude|Opus|Sonnet|Haiku|Fable|GPT|Codex|Gemini)[\s-]*[\w.]*\d[\w.]*/i;
+        if (![r.files['AGENTS.md'], r.files['CLAUDE.md'], r.files['README.md'], r.files['pet.json']].some((t) => t && modelRe.test(t))) add('Document control', 'warn', name, 'AGENTS.md', 'No model name and version recorded anywhere in the repo.', { fix: 'Add e.g. "Built with Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07".' });
+        if (registry && !(registry.pets || []).some((p) => p.repo === name)) add('Systemic', 'warn', name, 'findastra-pet-apps/pets.json', 'This pet is not listed in the Cage registry.', { fix: 'Add it to pets.json and the README table in findastra-pet-apps.' });
+      }
+
+      /* ---- Organizational ---- */
+      if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) add('Organizational', 'warn', name, 'repo name', `Repo name "${name}" breaks the house rule: lowercase words joined by hyphens.`);
+      if (!topics.length) add('Organizational', 'warn', name, 'topics', 'No topics, so the repo is invisible to topic search.', { fix: 'Add 3 to 5 topics.' });
+      if (/^moved\b/i.test(r.description || '') && !r.archived) add('Organizational', 'warn', name, 'repo status', 'This repo is a "Moved:" stub but is not archived.', { fix: 'Archive it (Settings, Danger Zone) once the new home has the content.' });
+      if (readme && !r.homepage && new RegExp(`${user}\\.github\\.io/${name}`, 'i').test(readme)) add('Organizational', 'note', name, 'homepage', 'README links a live site but the repo Website field is empty.', { fix: 'Put the live URL in About, Website.' });
+      if (r.homepage) {
+        const hm = new RegExp(`^https?://github\\.com/${user}/([^/#]+)/?#(.+)$`, 'i').exec(r.homepage);
+        const tgt = hm && repoMap[hm[1]];
+        if (tgt && tgt.files['README.md'] != null && !slugSet(tgt.files['README.md']).has(hm[2].toLowerCase())) add('Blatant', 'warn', name, 'repo homepage', `Website link points at #${hm[2]}, which matches no heading in ${tgt.name}'s README.`, { evidence: r.homepage });
+      }
+    }
+
+    /* ---- Profile README vs the repo list ---- */
+    const profRepo = repoMap[user];
+    if (!profRepo) add('Organizational', 'warn', '(profile)', 'profile README', `No ${user}/${user} repo, so the profile page has no README.`);
+    else if (profRepo.files['README.md']) {
+      const txt = profRepo.files['README.md'];
+      const listed = new Set();
+      const bullet = /^[-*]\s+\[`?([^\]`]+?)`?\]\(([^)]+)\)\s*(?:--|—|–|:|-)\s*(.+)$/gm;
+      let m;
+      while ((m = bullet.exec(txt))) {
+        const target = repoMap[m[1]];
+        if (!target) continue; // linkChecks already reports the dead link
+        listed.add(target.name);
+        const a = new Set(words(m[3])), b = new Set(words(target.description || ''));
+        const stop = new Set(['a', 'an', 'the', 'for', 'of', 'to', 'and', 'in', 'on', 'is', 'that', 'what']);
+        const A = [...a].filter((w) => !stop.has(w)), B = [...b].filter((w) => !stop.has(w));
+        const inter = A.filter((w) => b.has(w)).length;
+        const jac = inter / (new Set([...A, ...B]).size || 1);
+        if (B.length && jac < 0.3) add('Organizational', 'warn', user, 'README.md', `Profile blurb for ${target.name} and the repo's own description say different things.`, { line: lineOf(txt, m.index), evidence: `profile: "${clip(m[3], 70)}" | repo: "${clip(target.description || '', 70)}"`, fix: 'Make them the same sentence.' });
+      }
+      for (const r of repos) if (r.name !== user && !listed.has(r.name) && !/^moved\b/i.test(r.description || '')) add('Organizational', 'note', user, 'README.md', `The profile README does not list ${r.name}.`);
+    }
+
+    /* ---- Cage registry cross-check ---- */
+    if (registry) {
+      for (const p of registry.pets || []) if (p.published !== false && !repoMap[p.repo]) add('Systemic', 'error', HUB, 'pets.json', `The Cage lists "${p.repo}", which does not exist publicly.`, { fix: 'Publish the repo or remove the entry.' });
+    }
+
+    /* ---- Systemic: patterns across the account ---- */
+    const real = repos.filter((r) => r.name !== user);
+    const share = (pred) => real.filter(pred).length;
+    const named = (pred) => real.filter(pred).map((r) => r.name);
+    const noLicense = named((r) => r.license == null || r.license === 'NOASSERTION');
+    if (noLicense.length) add('Systemic', 'warn', '(whole account)', 'licenses', `${noLicense.length} of ${real.length} repos have no recognizable license: ${noLicense.join(', ')}.`, { fix: 'Pick one house license and add it everywhere.' });
+    for (const f of ['AGENTS.md', 'CLAUDE.md']) {
+      const n = share((r) => has(r, f));
+      if (n < real.length) add('Systemic', n ? 'warn' : 'note', '(whole account)', f, `${f} exists in ${n} of ${real.length} repos.`);
+    }
+    const noTopic = named((r) => !(r.topics || []).length);
+    if (noTopic.length && noTopic.length < real.length) add('Systemic', 'note', '(whole account)', 'topics', `${real.length - noTopic.length} repos use topics and ${noTopic.length} do not: ${noTopic.join(', ')}.`);
+    const dupes = {};
+    for (const r of real) if (r.description) (dupes[r.description.toLowerCase()] ||= []).push(r.name);
+    for (const names of Object.values(dupes)) if (names.length > 1) add('Systemic', 'warn', '(whole account)', 'descriptions', `Repos share one description: ${names.join(', ')}.`);
+    const descs = real.filter((r) => r.description && !/^moved\b/i.test(r.description));
+    if (descs.length >= 3) {
+      const dotted = descs.filter((r) => /[.!?]$/.test(r.description.trim()));
+      if (dotted.length && dotted.length < descs.length) {
+        const minority = dotted.length * 2 < descs.length ? dotted : descs.filter((r) => !dotted.includes(r));
+        add('Systemic', 'note', '(whole account)', 'descriptions', `Description punctuation is mixed (${dotted.length} end with a full stop, ${descs.length - dotted.length} do not). Odd ones out: ${minority.map((r) => r.name).join(', ')}.`);
+      }
+      const lower = descs.filter((r) => /^[a-z]/.test(r.description.trim()));
+      if (lower.length && lower.length < descs.length) add('Systemic', 'note', '(whole account)', 'descriptions', `Some descriptions start with a lowercase letter: ${lower.map((r) => r.name).join(', ')}.`);
+    }
+    // style tallies: apostrophes and dashes
+    const tally = (re) => {
+      const by = {}; let total = 0;
+      for (const s of surfaces) { if (s.repo === '(profile)') continue; const p = s.kind === 'md' ? prose(s.text) : s.text; const n = (p.match(re) || []).length; if (n) { by[`${s.repo} / ${s.where}`] = n; total += n; } }
+      return { by, total };
+    };
+    const styleCheck = (label, styles) => {
+      const t = Object.entries(styles).map(([k, re]) => [k, tally(re)]);
+      const grand = t.reduce((a, [, v]) => a + v.total, 0);
+      if (grand < 3) return;
+      const [topName, top] = t.sort((a, b) => b[1].total - a[1].total)[0];
+      if (top.total / grand < 0.99 && top.total / grand >= 0.5) {
+        const odd = t.filter(([k, v]) => k !== topName && v.total).map(([k, v]) => `${k} in ${Object.keys(v.by).slice(0, 4).join(', ')}${Object.keys(v.by).length > 4 ? ', …' : ''}`);
+        add('Systemic', 'note', '(whole account)', label, `Mixed ${label}: the account mostly uses ${topName} (${top.total} of ${grand}); also found: ${odd.join('; ')}.`, { fix: 'Pick one and search for the other.' });
+      }
+    };
+    styleCheck('apostrophes', { 'straight (\')': /[A-Za-z]'[a-z]/g, 'curly (’)': /[A-Za-z]’[a-z]/g });
+    styleCheck('dashes', { 'em dash (—)': /—/g, 'double hyphen (--)': / -- /g, 'spaced hyphen ( - )': /\S - \S/g });
+
+    sink.list.forEach((f, i) => { f.n = i; });
+    sink.list.sort((a, b) => SEV_ORDER[a.sev] - SEV_ORDER[b.sev] || CATS.indexOf(a.cat) - CATS.indexOf(b.cat) || a.n - b.n);
+    return sink.list;
+  }
+
+  function summarize(findings) {
+    const by = { error: 0, warn: 0, note: 0 };
+    const cat = Object.fromEntries(CATS.map((c) => [c, 0]));
+    for (const f of findings) { by[f.sev]++; cat[f.cat]++; }
+    const mood = by.error > 5 ? 'alarmed' : by.error > 0 ? 'worried' : by.warn > 0 ? 'ok' : 'happy';
+    return { by, cat, mood, total: findings.length };
+  }
+
+  function toMarkdown(findings, meta) {
+    const s = summarize(findings);
+    const out = [`# GitHub Goldfish report for ${meta.user}`, '', `*A pet app by Astra.* Audited ${meta.when}. ${meta.repoCount} public repos.`, '',
+      `**${s.by.error} errors, ${s.by.warn} warnings, ${s.by.note} notes.**`, '',
+      ...CATS.map((c) => `- ${c}: ${s.cat[c]}`), ''];
+    const groups = {};
+    for (const f of findings) (groups[f.repo] ||= []).push(f);
+    for (const repo of Object.keys(groups)) {
+      out.push(`## ${repo}`, '');
+      for (const f of groups[repo]) {
+        out.push(`- **${f.sev.toUpperCase()}** · ${f.cat} · \`${f.where}${f.line ? ':' + f.line : ''}\` — ${f.msg}${f.evidence ? ` Evidence: \`${f.evidence.replace(/`/g, "'")}\`.` : ''}${f.fix ? ` Fix: ${f.fix}` : ''}`);
+      }
+      out.push('');
+    }
+    if (meta.notes && meta.notes.length) out.push('## Not covered this run', '', ...meta.notes.map((n) => `- ${n}`), '');
+    return out.join('\n');
+  }
+
+  /* ---------- fetcher ---------- */
+  async function collect(user, opts = {}) {
+    const { token, onProgress = () => {}, fetchFn = (typeof fetch !== 'undefined' ? fetch : null) } = opts;
+    const notes = [];
+    const headers = { Accept: 'application/vnd.github+json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+    let limited = false;
+    const api = async (path) => {
+      if (limited) return null;
+      const r = await fetchFn('https://api.github.com' + path, { headers });
+      if (r.status === 403 || r.status === 429) { limited = true; return null; }
+      if (r.status === 404) return { __404: true };
+      if (r.status === 409) return { __empty: true };
+      if (!r.ok) throw new Error(`GitHub said ${r.status} for ${path}`);
+      return r.json();
+    };
+    const raw = async (repo, branch, path) => {
+      const r = await fetchFn(`https://raw.githubusercontent.com/${user}/${repo}/${encodeURIComponent(branch)}/${path.split('/').map(encodeURIComponent).join('/')}`);
+      return r.ok ? r.text() : null;
+    };
+    if (!/^[A-Za-z0-9-]{1,39}$/.test(user)) throw new Error('That does not look like a GitHub username.');
+    const profile = await api(`/users/${user}`);
+    if (!profile) throw new Error('GitHub is rate-limiting this browser. Wait an hour or paste a token (no scopes needed).');
+    if (profile.__404) throw new Error(`No GitHub account called "${user}".`);
+    let list = [];
+    for (let page = 1; page < 6; page++) {
+      const chunk = await api(`/users/${user}/repos?per_page=100&type=owner&sort=pushed&page=${page}`);
+      if (!chunk) throw new Error('GitHub is rate-limiting this browser. Wait an hour or paste a token (no scopes needed).');
+      list = list.concat(chunk);
+      if (chunk.length < 100) break;
+    }
+    const repos = list.map((r) => ({
+      name: r.name, description: r.description, homepage: r.homepage, topics: r.topics || [],
+      license: r.license ? r.license.spdx_id : null, archived: r.archived, fork: r.fork,
+      default_branch: r.default_branch, pushed_at: r.pushed_at, html_url: r.html_url, files: {}, tree: null,
+    }));
+    const todo = repos.filter((r) => !r.fork);
+    let done = 0;
+    const work = async (r) => {
+      onProgress({ phase: 'start', repo: r.name, done, total: todo.length });
+      const tr = await api(`/repos/${user}/${r.name}/git/trees/${encodeURIComponent(r.default_branch)}?recursive=1`);
+      if (tr && tr.tree) { r.tree = tr.tree.filter((e) => e.type === 'blob').map((e) => e.path); r.treeSizes = Object.fromEntries(tr.tree.filter((e) => e.type === 'blob').map((e) => [e.path, e.size])); r.treeTruncated = !!tr.truncated; }
+      else if (tr && tr.__empty) r.tree = [];
+      else if (!tr) r.tree = null;
+      let names = [...TEXT_FILES];
+      if (r.tree) {
+        const extra = r.tree.filter((p) => /\.md$/i.test(p) && !TEXT_FILES.includes(p) && !/(^|\/)node_modules\//.test(p) && (r.treeSizes[p] || 0) < MAX_BYTES);
+        if (extra.length > MAX_MD) notes.push(`${r.name}: only the first ${MAX_MD} of ${extra.length} extra .md files were read.`);
+        names = names.concat(extra.slice(0, MAX_MD));
+        names = names.filter((n) => TEXT_FILES.includes(n) ? r.tree.includes(n) : true);
+      }
+      await Promise.all(names.map(async (n) => { r.files[n] = await raw(r.name, r.default_branch, n); }));
+      done++;
+      onProgress({ phase: 'done', repo: r.name, done, total: todo.length });
+    };
+    const queue = [...todo];
+    await Promise.all(Array.from({ length: 4 }, async () => { for (let r; (r = queue.shift()); ) await work(r); }));
+    if (limited) notes.push('GitHub rate-limited this browser part-way: file lists for some repos are missing, so link and file checks there are partial. Paste a token to avoid this.');
+    let registry = null;
+    const hub = repos.find((r) => r.name === HUB);
+    if (hub) { const t = await raw(HUB, hub.default_branch, 'pets.json'); try { registry = t ? JSON.parse(t) : null; } catch { notes.push('findastra-pet-apps/pets.json could not be parsed.'); } }
+    else notes.push(`No ${HUB} repo yet, so the Cage registry check was skipped.`);
+    if (repos.some((r) => r.fork)) notes.push(`Skipped ${repos.filter((r) => r.fork).length} fork(s): their text is not yours.`);
+    return { user, profile: { name: profile.name, bio: profile.bio, company: profile.company, location: profile.location, blog: profile.blog }, repos, registry, notes };
+  }
+
+  return { audit, collect, summarize, toMarkdown, CATS, headings, slugSet, resolvePath };
+})();
+if (typeof module !== 'undefined') module.exports = Goldfish;
+</script>
+
+<script id="app">
+(() => {
+  if (typeof document === 'undefined') return;
+  const $ = (id) => document.getElementById(id);
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch { /* private window: fine */ } },
+  };
+
+  /* ===== The pixel twin: 32x32, nine moods, drawn in the Cage's shared style ===== */
+  const SPRITE = /*sprite:start*/{"name":"goldfish","source":"findastra-pet-apps art/sprites.json (generated by scripts/pets-art.mjs there). Edit the art in the Cage repo, then copy this file.","size":[32,32],"moods":["idle","blink","happy","curious","worried","sad","sick","alarmed","sleep"],"frames":{"idle":{"pal":{"a":"#714425","b":"#713913","c":"#ffb15c","d":"#ff8a1c","e":"#c76c16","f":"#714928","g":"#ffc266","h":"#ff9a2e","i":"#713e18","j":"#e8760f","k":"#e0660f","l":"#714e32","m":"#71451f","n":"#ffffff","o":"#3a1a10","p":"#ffd58a","q":"#ffb347","r":"#ff8fb0","s":"#c78c37","t":"#613a1b","u":"#ffd9a3","v":"#682f10","w":"#6b3410","x":"#71513b","y":"#ffe0a8","z":"#e89a30","A":"#6b3e19"},"rows":["................................","...............ab...............","..............acdb..............","..............aceb..............",".............acdddb.............",".............acddeb.............","............acdddddb............","..........ffcgggghhdii..........",".........fgggggggggghhi.........","........fgggghhhhhhgghhi........",".......fgghhhjhhhhjhhhhhi.......","......fgghhhhhhhhhhhhhhhhi......","......fgghhhhhhhhhhhhhhkhi......","....lmgghhnohhhhhhhhonhhkhlm....","...lpqgghhoohhhhhhhhoohhkhpqm...","..lpqqgghhoohhhhhhhhoohhkkqqqm..",".lpqqqggrrhhhhhhhhhhhhrrkkqqqqm.",".lpqqqgghhhhhhhhhhhhhhhhkkqqqst.",".lpqqqgghhhhuuouuouuhhhhkkqqqst.",".lpqqqhghhhuuuuoouuuuhhhkkqqqst.",".mqqqqhghhuuuuuuuuuuuuhhkkqqqst.","..mqqqshjhuuuuuuuuuuuujkkqqqst..","...mqsthhhuuuuuuuuuuuuhkkvqst...","....mt.ihjhuuuuuuuuuuhkjw.mt....","........ihhkuuuuuuuukkkv........",".........ihhkkkkkkkkkkv.........",".........xygghhkkkkgggf.........","........xygggggggggggggf........",".......xyggggggzzgggggggf.......","......xyggggggzAfggggggggf......",".....fygggggzzA..fgzggggggf.....","....fgzzzzzzAA....ffgzzzzzgf...."]},"blink":{"pal":{"a":"#714425","b":"#713913","c":"#ffb15c","d":"#ff8a1c","e":"#c76c16","f":"#714928","g":"#ffc266","h":"#ff9a2e","i":"#713e18","j":"#e8760f","k":"#e0660f","l":"#714e32","m":"#71451f","n":"#ffd58a","o":"#ffb347","p":"#3a1a10","q":"#ff8fb0","r":"#c78c37","s":"#613a1b","t":"#ffd9a3","u":"#682f10","v":"#6b3410","w":"#71513b","x":"#ffe0a8","y":"#e89a30","z":"#6b3e19"},"rows":["................................","...............ab...............","..............acdb..............","..............aceb..............",".............acdddb.............",".............acddeb.............","............acdddddb............","..........ffcgggghhdii..........",".........fgggggggggghhi.........","........fgggghhhhhhgghhi........",".......fgghhhjhhhhjhhhhhi.......","......fgghhhhhhhhhhhhhhhhi......","......fgghhhhhhhhhhhhhhkhi......","....lmgghhhhhhhhhhhhhhhhkhlm....","...lnogghppphhhhhhhhppphkhnom...","..lnoogghhhhhhhhhhhhhhhhkkooom..",".lnoooggqqhhhhhhhhhhhhqqkkoooom.",".lnooogghhhhhhhhhhhhhhhhkkooors.",".lnooogghhhhttpttptthhhhkkooors.",".lnooohghhhttttpptttthhhkkooors.",".moooohghhtttttttttttthhkkooors.","..mooorhjhttttttttttttjkkooors..","...morshhhtttttttttttthkkuors...","....ms.ihjhtttttttttthkjv.ms....","........ihhkttttttttkkku........",".........ihhkkkkkkkkkku.........",".........wxgghhkkkkgggf.........","........wxgggggggggggggf........",".......wxggggggyygggggggf.......","......wxggggggyzfggggggggf......",".....fxgggggyyz..fgyggggggf.....","....fgyyyyyyzz....ffgyyyyygf...."]},"happy":{"pal":{"a":"#362e40","b":"#714425","c":"#713913","d":"#fff0a0","e":"#ffb15c","f":"#ff8a1c","g":"#c76c16","h":"#714928","i":"#ffc266","j":"#ff9a2e","k":"#713e18","l":"#e8760f","m":"#e0660f","n":"#714e32","o":"#71451f","p":"#ffd58a","q":"#ffb347","r":"#3a1a10","s":"#ff8fb0","t":"#c78c37","u":"#613a1b","v":"#ffd9a3","w":"#ff7d9c","x":"#682f10","y":"#6b3410","z":"#71513b","A":"#ffe0a8","B":"#e89a30","C":"#6b3e19"},"rows":["..........................a.....","...............bc........ada....","..............befc......addda...","..............begc.......ada....",".............befffc.......a.....",".............beffgc.............","............befffffc............","..........hheiiiijjfkk..........",".........hiiiiiiiiiijjk.........","........hiiiijjjjjjiijjk........",".......hiijjjljjjjljjjjjk.......","......hiijjjjjjjjjjjjjjjjk......","......hiijjjjjjjjjjjjjjmjk......","....noiijjjjjjjjjjjjjjjjmjno....","...npqiijjrjjjjjjjjjjrjjmjpqo...","..npqqiijrjrjjjjjjjjrjrjmmqqqo..",".npqqqiissjjjjjjjjjjjjssmmqqqqo.",".npqqqiijjjjjjjjjjjjjjjjmmqqqtu.",".npqqqiijjjjvvrrrrvvjjjjmmqqqtu.",".npqqqjijjjvvvvwwvvvvjjjmmqqqtu.",".oqqqqjijjvvvvvvvvvvvvjjmmqqqtu.","..oqqqtjljvvvvvvvvvvvvlmmqqqtu..","...oqtujjjvvvvvvvvvvvvjmmxqtu...","....ou.kjljvvvvvvvvvvjmly.ou....","........kjjmvvvvvvvvmmmx........",".........kjjmmmmmmmmmmx.........",".........zAiijjmmmmiiih.........","........zAiiiiiiiiiiiiih........",".......zAiiiiiiBBiiiiiiih.......","......zAiiiiiiBChiiiiiiiih......",".....hAiiiiiBBC..hiBiiiiiih.....","....hiBBBBBBCC....hhiBBBBBih...."]},"curious":{"pal":{"a":"#362e40","b":"#714425","c":"#713913","d":"#ffd166","e":"#ffb15c","f":"#ff8a1c","g":"#c76c16","h":"#714928","i":"#ffc266","j":"#ff9a2e","k":"#713e18","l":"#e8760f","m":"#e0660f","n":"#714e32","o":"#71451f","p":"#ffffff","q":"#3a1a10","r":"#ffd58a","s":"#ffb347","t":"#ff8fb0","u":"#c78c37","v":"#613a1b","w":"#ffd9a3","x":"#682f10","y":"#6b3410","z":"#71513b","A":"#ffe0a8","B":"#e89a30","C":"#6b3e19"},"rows":["..........................aa....","...............bc........adda...","..............befc......adaada..","..............begc.......aada...",".............befffc......ada....",".............beffgc.......a.....","............befffffc.....ada....","..........hheiiiijjfkk....a.....",".........hiiiiiiiiiijjk.........","........hiiiijjjjjjiijjk........",".......hiijjjljjjjljjjjjk.......","......hiijjjjjjjjjjjjjjjjk......","......hiijjjjjjjjjjjjjjmjk......","....noiijjpqjjjjjjjjqpjjmjno....","...nrsiijjqqjjjjjjjjqqjjmjrso...","..nrssiijjqqjjjjjjjjqqjjmmssso..",".nrsssiittjjjjjjjjjjjjttmmsssso.",".nrsssiijjjjjjjjjjjjjjjjmmsssuv.",".nrsssiijjjjwwwqqwwwjjjjmmsssuv.",".nrsssjijjjwwwwwwwwwwjjjmmsssuv.",".ossssjijjwwwwwwwwwwwwjjmmsssuv.","..osssujljwwwwwwwwwwwwlmmsssuv..","...osuvjjjwwwwwwwwwwwwjmmxsuv...","....ov.kjljwwwwwwwwwwjmly.ov....","........kjjmwwwwwwwwmmmx........",".........kjjmmmmmmmmmmx.........",".........zAiijjmmmmiiih.........","........zAiiiiiiiiiiiiih........",".......zAiiiiiiBBiiiiiiih.......","......zAiiiiiiBChiiiiiiiih......",".....hAiiiiiBBC..hiBiiiiiih.....","....hiBBBBBBCC....hhiBBBBBih...."]},"worried":{"pal":{"a":"#714425","b":"#713913","c":"#362e40","d":"#ffb15c","e":"#ff8a1c","f":"#4fa3ea","g":"#c76c16","h":"#d9f1ff","i":"#714928","j":"#ffc266","k":"#ff9a2e","l":"#713e18","m":"#e8760f","n":"#3a1a10","o":"#e0660f","p":"#714e32","q":"#71451f","r":"#ffd58a","s":"#ffb347","t":"#ffffff","u":"#c78c37","v":"#613a1b","w":"#ffd9a3","x":"#682f10","y":"#6b3410","z":"#71513b","A":"#ffe0a8","B":"#e89a30","C":"#6b3e19"},"rows":["................................","...............ab...............","...c..........adeb..............","..cfc.........adgb..............",".cfhfc.......adeeeb.............",".cfhfc.......adeegb.............","..cfc.......adeeeeeb............","...c......iidjjjjkkell..........",".........ijjjjjjjjjjkkl.........","........ijjjjkkkkkkjjkkl........",".......ijjkkkmkkkkmkkkkkl.......","......ijjkknkkkkkkkknkkkkl......","......ijjnnkkkkkkkkkknnokl......","....pqjjkknnkkkkkkkknnkkokpq....","...prsjjkktnkkkkkkkkntkkokrsq...","..prssjjkknnkkkkkkkknnkkoosssq..",".prsssjjkkkkkkkkkkkkkkkkoossssq.",".prsssjjkkkkkkkkkkkkkkkkoosssuv.",".prsssjjkkkkwwwnwnwwkkkkoosssuv.",".prssskjkkkwwwnwnwwwwkkkoosssuv.",".qsssskjkkwwwwwwwwwwwwkkoosssuv.","..qsssukmkwwwwwwwwwwwwmoosssuv..","...qsuvkkkwwwwwwwwwwwwkooxsuv...","....qv.lkmkwwwwwwwwwwkomy.qv....","........lkkowwwwwwwwooox........",".........lkkoooooooooox.........",".........zAjjkkoooojjji.........","........zAjjjjjjjjjjjjji........",".......zAjjjjjjBBjjjjjjji.......","......zAjjjjjjBCijjjjjjjji......",".....iAjjjjjBBC..ijBjjjjjji.....","....ijBBBBBBCC....iijBBBBBji...."]},"sad":{"pal":{"a":"#735141","b":"#734732","c":"#eaac70","d":"#ea8b3a","e":"#bb7235","f":"#735544","g":"#eaba78","h":"#ea9949","i":"#734c36","j":"#3a1a10","k":"#d77b2f","l":"#d06d2f","m":"#ffffff","n":"#6b3f30","o":"#4fa3ea","p":"#73594c","q":"#d9f1ff","r":"#73513c","s":"#eaca96","t":"#eaceab","u":"#eaae5e","v":"#bb8d50","w":"#654839","x":"#6e4330","y":"#735c54","z":"#ead4af","A":"#d7994b","B":"#6e4c37"},"rows":["................................","...............ab...............","..............acdb..............","..............aceb..............",".............acdddb.............",".............acddeb.............","............acdddddb............","..........ffcgggghhdii..........",".........fgggggggggghhi.........","........fgggghhhhhhgghhi........",".......fgghjhkhhhhkhjhhhi.......","......fgghjhhhhhhhhhhjhhhi......","......fggjhhhhhhhhhhhhjlhi......",".....fgghhjjhhhhhhhhjjhhlhi.....",".....fgghhmjhhhhhhhhjmhhlhi.....",".....fgghhjjhhhhhhhhjjhhlln.....",".....fgghhohhhhhhhhhhohhlln.....","...pppgghhqhhhhhhhhhhqhhllppr...","..psssgghhhhtttjjttthhhhllssur..","..psuuhghhhtttjttjttthhhlluuvr..",".psuuuhghhtttttttttttthhlluuuur.",".psuuuuhkhttttttttttttklluuuuvw.",".ruuuuuhhhtttttttttttthlluuuuvw.","..psuuvwhkhtttttttttthlkxsuuvw..","..ruvvvwihhlttttttttlllnruvvvw..","...rwww..ihhlllllllllln..rwww...",".........yzgghhllllgggf.........","........yzgggggggggggggf........",".......yzggggggAAgggggggf.......","......yzggggggABfggggggggf......",".....fzgggggAAB..fgAggggggf.....","....fgAAAAAABB....ffgAAAAAgf...."]},"sick":{"pal":{"a":"#81743e","b":"#816d33","c":"#362e40","d":"#d9b760","e":"#d99f39","f":"#4fa3ea","g":"#b78d35","h":"#d9f1ff","i":"#817740","j":"#d9c266","k":"#d9a944","l":"#817036","m":"#f3d3a2","n":"#cb9330","o":"#c68930","p":"#3a1a10","q":"#7c6731","r":"#817a46","s":"#81753a","t":"#d9ce7d","u":"#d9d08c","v":"#d9b953","w":"#b7a149","x":"#776e38","y":"#7e6a31","z":"#817c4c","A":"#d9d58f","B":"#cba945","C":"#7e7037"},"rows":["................................","...............ab...............","...c..........adeb..............","..cfc.........adgb..............",".cfhfc.......adeeeb.............",".cfhfc.......adeegb.............","..cfc.......adeeeeeb............","...c......iidjjjjkkell..........",".........ijjjjjjjjjjkml.........","........ijjjjkkkkkkjmmml........",".......ijjkkknkkkknkkmkkl.......","......ijjkkkkkkkkkkkkkkkkl......","......ijjkkkkkkkkkkkkkkokl......",".....ijjkpkpkkkkkkkkpkpkokl.....",".....ijjkkpkkkkkkkkkkpkkokl.....",".....ijjkpkpkkkkkkkkpkpkooq.....",".....ijjkkkkkkkkkkkkkkkkooq.....","...rrrjjkkkkkkkkkkkkkkkkoorrs...","..rtttjjkkkkuuupupuukkkkoottvs..","..rtvvkjkkkuuupupuuuukkkoovvws..",".rtvvvkjkkuuuuuuuuuuuukkoovvvvs.",".rtvvvvknkuuuuuuuuuuuunoovvvvwx.",".svvvvvkkkuuuuuuuuuuuukoovvvvwx.","..rtvvwxknkuuuuuuuuuukonytvvwx..","..svwwwxlkkouuuuuuuuoooqsvwwwx..","...sxxx..lkkooooooooooq..sxxx...",".........zAjjkkoooojjji.........","........zAjjjjjjjjjjjjji........",".......zAjjjjjjBBjjjjjjji.......","......zAjjjjjjBCijjjjjjjji......",".....iAjjjjjBBC..ijBjjjjjji.....","....ijBBBBBBCC....iijBBBBBji...."]},"alarmed":{"pal":{"a":"#362e40","b":"#714425","c":"#713913","d":"#ff5a5f","e":"#ffb15c","f":"#ff8a1c","g":"#c76c16","h":"#714928","i":"#ffc266","j":"#ff9a2e","k":"#713e18","l":"#e8760f","m":"#3a1a10","n":"#e0660f","o":"#714e32","p":"#71451f","q":"#ffd58a","r":"#ffb347","s":"#ffffff","t":"#c78c37","u":"#613a1b","v":"#ffd9a3","w":"#682f10","x":"#6b3410","y":"#71513b","z":"#ffe0a8","A":"#e89a30","B":"#6b3e19"},"rows":[".........................aa.....","...............bc.......adda....","..............befc......adda....","..............begc......adda....",".............befffc.....adda....",".............beffgc......aa.....","............befffffc....adda....","..........hheiiiijjfkk...aa.....",".........hiiiiiiiiiijjk.........","........hiiiijjjjjjiijjk........",".......hiijjjljjjjljjjjjk.......","......hiijjjjjjjjjjjjjjjjk......","......hiimjmjjjjjjjjmjmnjk......","....opiijmmmjjjjjjjjmmmjnjop....","...oqriijmsmjjjjjjjjmsmjnjqrp...","..oqrriijmmmjjjjjjjjmmmjnnrrrp..",".oqrrriijjjjjjjjjjjjjjjjnnrrrrp.",".oqrrriijjjjjjjjjjjjjjjjnnrrrtu.",".oqrrriijjjjvvvmmvvvjjjjnnrrrtu.",".oqrrrjijjjvvvvmmvvvvjjjnnrrrtu.",".prrrrjijjvvvvvvvvvvvvjjnnrrrtu.","..prrrtjljvvvvvvvvvvvvlnnrrrtu..","...prtujjjvvvvvvvvvvvvjnnwrtu...","....pu.kjljvvvvvvvvvvjnlx.pu....","........kjjnvvvvvvvvnnnw........",".........kjjnnnnnnnnnnw.........",".........yziijjnnnniiih.........","........yziiiiiiiiiiiiih........",".......yziiiiiiAAiiiiiiih.......","......yziiiiiiABhiiiiiiiih......",".....hziiiiiAAB..hiAiiiiiih.....","....hiAAAAAABB....hhiAAAAAih...."]},"sleep":{"pal":{"a":"#362e40","b":"#744d39","c":"#74432a","d":"#9fb4ff","e":"#f1ad6a","f":"#f18b31","g":"#c0702c","h":"#74523c","i":"#f1bc73","j":"#f19941","k":"#74482e","l":"#dd7926","m":"#d66b26","n":"#3a1a10","o":"#6c3b27","p":"#ff8fb0","q":"#745645","r":"#744e34","s":"#f1cd92","t":"#f1d0a8","u":"#f1af57","v":"#c08c49","w":"#664431","x":"#6f3f27","y":"#74594d","z":"#f1d6ad","A":"#dd9943","B":"#6f482f"},"rows":[".........................aaaa...","...............bc.......adddda..","..............befc.......aada...","..............begc.......adaa...",".............befffc.....adddda..",".............beffgc......aaaa...","............befffffc............","..........hheiiiijjfkk..........",".........hiiiiiiiiiijjk.........","........hiiiijjjjjjiijjk........",".......hiijjjljjjjljjjjjk.......","......hiijjjjjjjjjjjjjjjjk......","......hiijjjjjjjjjjjjjjmjk......",".....hiijjjjjjjjjjjjjjjjmjk.....",".....hiijnjnjjjjjjjjnjnjmjk.....",".....hiijjnjjjjjjjjjjnjjmmo.....",".....hiippjjjjjjjjjjjjppmmo.....","...qqqiijjjjjjjjjjjjjjjjmmqqr...","..qsssiijjjjtttnntttjjjjmmssur..","..qsuujijjjttttttttttjjjmmuuvr..",".qsuuujijjttttttttttttjjmmuuuur.",".qsuuuujljttttttttttttlmmuuuuvw.",".ruuuuujjjttttttttttttjmmuuuuvw.","..qsuuvwjljttttttttttjmlxsuuvw..","..ruvvvwkjjmttttttttmmmoruvvvw..","...rwww..kjjmmmmmmmmmmo..rwww...",".........yziijjmmmmiiih.........","........yziiiiiiiiiiiiih........",".......yziiiiiiAAiiiiiiih.......","......yziiiiiiABhiiiiiiiih......",".....hziiiiiAAB..hiAiiiiiih.....","....hiAAAAAABB....hhiAAAAAih...."]}}}/*sprite:end*/;
+  const W = 160, H = 72, cv = $('tank'), cx = cv.getContext('2d');
+  const INK = '#1f3a1a', SAND = '#8fa866', LCD = '#b7cf8a';
+  const frameCache = {};
+  function frameCanvas(mood) {
+    if (frameCache[mood]) return frameCache[mood];
+    const f = SPRITE.frames[mood], c = document.createElement('canvas'); c.width = c.height = 32;
+    const x = c.getContext('2d');
+    f.rows.forEach((row, y) => [...row].forEach((ch, i) => { if (f.pal[ch]) { x.fillStyle = f.pal[ch]; x.fillRect(i, y, 1, 1); } }));
+    return (frameCache[mood] = c);
+  }
+  // app mood -> which of the nine drawn moods to show
+  const FACE = { happy: 'happy', ok: 'idle', worried: 'worried', alarmed: 'alarmed', busy: 'curious', failed: 'sad' };
+  let fish = { x: 60, y: 14, tx: 60, ty: 14, face: 1, hop: 0, squash: 0 };
+  let mood = 'happy', t0 = performance.now(), bubbles = [], stations = [], running = false, nextWander = 0;
+
+  function layoutStations(n) {
+    stations = [];
+    for (let i = 0; i < n; i++) stations.push(n === 1 ? W / 2 : 14 + (i * (W - 28)) / (n - 1));
+  }
+  function frame(now) {
+    const t = (now - t0) / 1000;
+    cx.fillStyle = LCD; cx.fillRect(0, 0, W, H);
+    cx.fillStyle = 'rgba(31,58,26,.06)'; for (let y = 0; y < H; y += 2) cx.fillRect(0, y, W, 1);
+    cx.fillStyle = SAND; cx.fillRect(0, 66, W, 6);
+    cx.fillStyle = INK; for (let x = 1; x < W; x += 4) cx.fillRect(x, 66, 1, 1);
+    stations.forEach((sx, i) => { cx.fillStyle = INK; cx.fillRect(sx - 3, 63, 7, 3); cx.fillRect(sx - 1, 61, 3, 2); if (i % 2) cx.fillRect(sx + 4, 62, 1, 4); });
+    if (!reduced && !running && now > nextWander) { fish.tx = 6 + Math.random() * (W - 44); fish.ty = 4 + Math.random() * 26; nextWander = now + 2500 + Math.random() * 2500; }
+    const k = reduced ? 1 : 0.035;
+    const dx = fish.tx - fish.x; fish.x += dx * k; fish.y += (fish.ty - fish.y) * k;
+    if (Math.abs(dx) > 2) fish.face = dx > 0 ? 1 : -1;
+    // swim-hop: a small bounce while moving, a squash when it turns at a wall
+    fish.hop += reduced ? 0 : 0.12 + Math.abs(dx) * 0.004;
+    const bob = reduced ? 0 : -Math.abs(Math.sin(fish.hop)) * 2.5;
+    const shake = mood === 'alarmed' && !reduced ? (Math.floor(t * 12) % 2 ? 1 : -1) : 0;
+    const blink = !reduced && (t % 3.2) > 3.05 && (mood === 'happy' || mood === 'ok');
+    if (!reduced && Math.random() < 0.04) bubbles.push({ x: fish.x + 16 + (Math.random() * 6 - 3), y: fish.y + 12, r: Math.random() < 0.5 ? 1 : 2 });
+    bubbles = bubbles.filter((b) => (b.y -= 0.35) > 2);
+    cx.fillStyle = INK;
+    bubbles.forEach((b) => { cx.fillRect(Math.round(b.x), Math.round(b.y), b.r, 1); cx.fillRect(Math.round(b.x), Math.round(b.y) + b.r, b.r, 1); cx.fillRect(Math.round(b.x) - 1, Math.round(b.y) + 1, 1, Math.max(1, b.r - 1)); cx.fillRect(Math.round(b.x) + b.r, Math.round(b.y) + 1, 1, Math.max(1, b.r - 1)); });
+    const img = frameCanvas(blink ? 'blink' : FACE[mood] || 'idle');
+    const px = Math.round(fish.x + shake), py = Math.round(fish.y + bob);
+    cx.save();
+    if (fish.face < 0) { cx.translate(px + 32, py); cx.scale(-1, 1); cx.drawImage(img, 0, 0); } else cx.drawImage(img, px, py);
+    cx.restore();
+    if (!reduced) requestAnimationFrame(frame);
+  }
+  function redraw() { if (reduced) frame(performance.now()); }
+  layoutStations(6); requestAnimationFrame(frame);
+
+  function setMood(m) { mood = m; $('mood').textContent = 'mood: ' + m; redraw(); }
+  function setStatus(s) { $('status').textContent = s; }
+
+  /* ===== UI ===== */
+  const E = (tag, props = {}, ...kids) => { const el = document.createElement(tag); Object.assign(el, props); kids.forEach((k) => el.append(k)); return el; };
+  let findings = [], meta = null, catFilter = 'All', showNotes = true;
+
+  $('user').value = store.get('goldfish.user') || 'findastra';
+  $('never').value = store.get('goldfish.never') || '';
+  $('never').addEventListener('change', () => store.set('goldfish.never', $('never').value));
+
+  function ghUrl(f) {
+    const r = meta.repos.find((x) => x.name === f.repo);
+    if (!r || !/^[\w.-]+$/.test(f.repo)) return null;
+    if (/^(README|AGENTS|CLAUDE|SECURITY|CONTRIBUTING|CHANGELOG)\.md$|^pet\.json$|\.md$/i.test(f.where) && !/\s/.test(f.where))
+      return `https://github.com/${encodeURIComponent(meta.user)}/${f.repo}/blob/${encodeURIComponent(r.default_branch)}/${f.where.split('/').map(encodeURIComponent).join('/')}${f.line ? '#L' + f.line : ''}`;
+    return r.html_url;
+  }
+
+  function render() {
+    const s = Goldfish.summarize(findings);
+    $('results').hidden = false;
+    const tiles = $('tiles'); tiles.replaceChildren(...Goldfish.CATS.map((c) => E('div', { className: 'tile' }, E('b', { textContent: s.cat[c] }), E('span', { textContent: c }))));
+    $('sevline').replaceChildren(E('strong', { textContent: `${s.by.error} errors` }), `, ${s.by.warn} warnings, ${s.by.note} notes across ${meta.repoCount} public repos.`);
+    const f = $('filters'); f.replaceChildren();
+    const chip = (label, pressed, on) => { const b = E('button', { type: 'button', className: 'chip', textContent: label }); b.setAttribute('aria-pressed', pressed); b.onclick = on; return b; };
+    ['All', ...Goldfish.CATS].forEach((c) => f.append(chip(c, c === catFilter, () => { catFilter = c; render(); })));
+    f.append(chip('Show notes', showNotes, () => { showNotes = !showNotes; render(); }));
+    const shown = findings.filter((x) => (catFilter === 'All' || x.cat === catFilter) && (showNotes || x.sev !== 'note'));
+    const groups = new Map(); shown.forEach((x) => { if (!groups.has(x.repo)) groups.set(x.repo, []); groups.get(x.repo).push(x); });
+    const order = [...groups.keys()].sort((a, b) => (a.startsWith('(') ? -1 : 0) - (b.startsWith('(') ? -1 : 0) || groups.get(b).filter((x) => x.sev === 'error').length - groups.get(a).filter((x) => x.sev === 'error').length || a.localeCompare(b));
+    const host = $('repos'); host.replaceChildren();
+    if (!shown.length) host.append(E('p', { className: 'empty', textContent: 'Nothing to flag here. The goldfish is happy.' }));
+    for (const repo of order) {
+      const items = groups.get(repo);
+      const ul = E('ul');
+      for (const x of items) {
+        const url = ghUrl(x);
+        const where = url ? E('a', { className: 'where mono', href: url, target: '_blank', rel: 'noopener', textContent: x.where + (x.line ? ':' + x.line : '') }) : E('span', { className: 'where mono', textContent: x.where + (x.line ? ':' + x.line : '') });
+        const li = E('li', { className: 'finding' }, E('div', { className: 'top' }, E('span', { className: 'badge ' + x.sev, textContent: x.sev }), E('span', { className: 'cat', textContent: x.cat }), where), E('p', { className: 'msg', textContent: x.msg }));
+        if (x.evidence) li.append(E('p', { className: 'evidence mono', textContent: x.evidence }));
+        if (x.fix) li.append(E('p', { className: 'fix', textContent: 'Fix: ' + x.fix }));
+        ul.append(li);
+      }
+      const errs = items.filter((x) => x.sev === 'error').length;
+      host.append(E('section', { className: 'repo' }, E('header', {}, E('h3', { textContent: repo }), E('span', { className: 'cat', textContent: `${items.length} finding${items.length === 1 ? '' : 's'}${errs ? `, ${errs} error${errs === 1 ? '' : 's'}` : ''}` })), ul));
+    }
+    $('coverage').replaceChildren(...(meta.notes.length ? meta.notes : ['Everything in the checklist ran.']).map((n) => E('li', { textContent: n })));
+  }
+
+  $('go').onclick = async () => {
+    const user = $('user').value.trim();
+    store.set('goldfish.user', user);
+    $('go').disabled = true; $('copy').disabled = true; $('download').disabled = true;
+    setMood('busy'); setStatus('Goldfish is warming up…');
+    running = true;
+    try {
+      const data = await Goldfish.collect(user, {
+        token: $('token').value.trim() || undefined,
+        onProgress: (p) => {
+          if (p.phase === 'start') {
+            if (stations.length !== p.total) layoutStations(p.total);
+            const i = Math.min(p.done, stations.length - 1);
+            fish.tx = Math.max(2, Math.min(W - 34, stations[i] - 16)); fish.ty = 24; redraw();
+            setStatus(`Sniffing ${p.repo} (${p.done + 1} of ${p.total})`);
+          }
+        },
+      });
+      const never = $('never').value.split('\n');
+      findings = Goldfish.audit({ ...data, neverSay: never });
+      meta = { user, repoCount: data.repos.filter((r) => !r.fork).length, repos: data.repos, notes: data.notes, when: new Date().toISOString().slice(0, 10) };
+      const s = Goldfish.summarize(findings);
+      setMood(s.mood); fish.tx = W / 2 - 16; fish.ty = 14; redraw();
+      setStatus(`Done: ${s.by.error} errors, ${s.by.warn} warnings, ${s.by.note} notes.`);
+      render();
+      $('copy').disabled = false; $('download').disabled = false;
+    } catch (e) {
+      setMood('failed'); setStatus('Goldfish could not finish: ' + e.message);
+    } finally { running = false; $('go').disabled = false; }
+  };
+  $('copy').onclick = async () => {
+    try { await navigator.clipboard.writeText(Goldfish.toMarkdown(findings, meta)); setStatus('Report copied.'); }
+    catch { setStatus('Copy was blocked by the browser. Use Download report.md instead.'); }
+  };
+  $('download').onclick = () => {
+    const a = E('a', { href: URL.createObjectURL(new Blob([Goldfish.toMarkdown(findings, meta)], { type: 'text/markdown' })), download: `goldfish-report-${meta.user}-${meta.when}.md` });
+    document.body.append(a); a.click(); a.remove();
+  };
+})();
+</script>
+</body>
+</html>

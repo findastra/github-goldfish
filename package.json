@@ -1,0 +1,13 @@
+{
+  "name": "github-goldfish",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A pixel goldfish that audits every public word on a GitHub account.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/",
+    "audit": "node scripts/goldfish-cli.mjs",
+    "sync-sprite": "node scripts/sync-sprite.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

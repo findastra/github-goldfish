@@ -1,0 +1,8 @@
+node_modules/
+.env
+.env.*
+*.snapshot.json
+goldfish-report-*.md
+.claude/
+.DS_Store
+Thumbs.db

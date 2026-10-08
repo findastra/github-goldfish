@@ -1,0 +1,13 @@
+{
+  "pet": "GitHub Goldfish",
+  "kind": "pet-app",
+  "owner": "Astra",
+  "sprite": "sprite.json",
+  "job": "Swims through every public word on a GitHub account and flags document-control, blatant, organizational and systemic errors.",
+  "runs_on": "Any modern browser (index.html). Optional command line: Node 20 or newer.",
+  "entry": "index.html",
+  "status": "hatching",
+  "cage": { "topic": "pet-app", "home": "README.md" },
+  "version": "0.1.0",
+  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07"
+}
