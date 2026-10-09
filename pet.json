@@ -17,7 +17,7 @@
   "preview": "github-goldfish-20261008.html",
   "source": "https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008",
   "release_tag": "v0.2.0-20261008",
-  "publication_status": "source-release-prepared; see docs/publications-20261008.md",
+  "publication_status": "source-release-verified; local-browser-verified; see docs/publications-20261008.md",
   "visibility": "private",
   "implementation_status": "The canonical and dated browser entries share the public-account auditor and explicit repo-scoped naming corrections. Rules stay in browser storage or a private CLI file; tokens stay only in memory. Private snapshots can be audited locally. There is no automatic learning or background monitoring. Original sprite.json is unchanged.",
   "updated": "2026-10-08"
