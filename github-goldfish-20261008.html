@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GitHub Goldfish</title>
-<meta name="description" content="A pixel goldfish that swims through every public word on a GitHub account and flags document-control, blatant, organizational and systemic errors.">
+<meta name="description" content="A pixel goldfish that swims through every word in a GitHub account's repos, public and (with a token) private, and flags document-control, blatant, organizational and systemic errors.">
 <style>
 :root {
   --bg: #14110f;
@@ -78,6 +78,9 @@ input[type=text], input[type=password], textarea {
 }
 textarea { min-height: 84px; resize: vertical; }
 .hint { font-size: .85rem; color: var(--muted); margin: 4px 0 0; }
+label.check { display: flex; gap: 8px; align-items: center; color: var(--text); margin: 8px 0 0; }
+label.check input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); }
+.tag-private { font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; padding: 1px 7px; border-radius: 6px; border: 1.5px solid var(--muted); color: var(--muted); margin-left: 8px; vertical-align: middle; }
 button {
   font: inherit; font-weight: 700; cursor: pointer; border-radius: 10px;
   border: 2px solid #3a1d08; background: var(--accent); color: #2b1305; padding: 10px 18px;
@@ -129,7 +132,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: .85rem; border-top: 1
 <body>
 <main>
   <h1>GitHub Goldfish</h1>
-  <p class="sub"><em>A pet app by Astra.</em> A goldfish swims through every public word on a GitHub account and tells you what is wrong, misplaced, or inconsistent.</p>
+  <p class="sub"><em>A pet app by Astra.</em> A goldfish swims through every word in a GitHub account's repos, public and (with a token) private, and tells you what is wrong, misplaced, or inconsistent.</p>
 
   <section class="device" aria-label="The goldfish tank">
     <div class="lcd-wrap"><canvas id="tank" width="160" height="72" role="img" aria-label="A pixel goldfish swimming in a tank"></canvas></div>
@@ -143,12 +146,13 @@ footer { margin-top: 40px; color: var(--muted); font-size: .85rem; border-top: 1
     <div>
       <label for="user">GitHub account to audit</label>
       <input id="user" type="text" value="findastra" autocomplete="off" spellcheck="false">
-      <p class="hint">Public repos only. Goldfish reads what any visitor can read.</p>
+      <p class="hint">Without a token Goldfish reads public repos only. With a token for this account it reads private repos too.</p>
     </div>
     <div>
-      <label for="token">GitHub token (optional)</label>
+      <label for="token">GitHub token (needed for private repos)</label>
       <input id="token" type="password" autocomplete="off" spellcheck="false">
-      <p class="hint">Only raises the rate limit (60 to 5,000 requests an hour). Held in memory, sent only to api.github.com, never saved. Needs no scopes.</p>
+      <p class="hint">Raises the rate limit (60 to 5,000 requests an hour) and, if it belongs to this account, opens private repos. Classic token: <code>repo</code> scope. Fine-grained: All repositories, Contents read-only. Held in memory, sent only to api.github.com, never saved.</p>
+      <label class="check"><input id="private" type="checkbox" checked> Include private repos</label>
     </div>
     <div>
       <label for="never">Words Goldfish must never find (one per line)</label>
@@ -186,8 +190,8 @@ footer { margin-top: 40px; color: var(--muted); font-size: .85rem; border-top: 1
 
   <footer>
     <p><strong>Checks:</strong> Document control (missing or malformed required files, pet files, headings, stray copies and secrets files), Blatant (typos, doubled words, mojibake, placeholders, secrets, broken links and anchors, brand spellings, never-say words), Organizational (names, topics, homepage, stubs, profile list), Systemic (patterns across the whole account: license, apostrophes, dashes, description style, the Cage registry).</p>
-    <p><strong>Not checked:</strong> spelling beyond a short typo list and doubled words, external links (browsers cannot test them), issues, pull requests, wikis, releases, gists, commit messages, text inside images, private repos, the contents of live websites.</p>
-    <p>GitHub Goldfish <a href="https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008">v0.2.0-20261008 source</a>. Built by Claude Sonnet 5.5 (<code>claude-sonnet-5-5</code>), 2026-10-07; naming corrections added by Codex (GPT-6), 2026-10-08. Made for Astra. MIT licensed.</p>
+    <p><strong>Not checked:</strong> spelling beyond a short typo list and doubled words, external links (browsers cannot test them), issues, pull requests, wikis, releases, gists, commit messages, text inside images, private repos when no token for the account is given, organizations' private repos, the contents of live websites.</p>
+    <p>GitHub Goldfish <a href="https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008">v0.2.0-20261008 source</a>. Built by Claude Sonnet 5.5 (<code>claude-sonnet-5-5</code>), 2026-10-07; naming corrections added by Codex (GPT-6), 2026-10-08; private repos added by Claude Opus 5.5 (<code>claude-opus-5-5</code>), 2026-10-09. Made for Astra. MIT licensed.</p>
   </footer>
 </main>
 
@@ -294,6 +298,8 @@ const Goldfish = (() => {
       sink.add(cat, sev, repo, where, msg, { line: kind === 'md' && i != null ? lineOf(text, i) : undefined, ...extra });
     const p = kind === 'md' ? prose(text) : text.replace(/https?:\/\/\S+/g, blank);
     const q = kind === 'md' ? maskCode(text) : text;
+    const priv = !!(ctx.repoMap[repo] && ctx.repoMap[repo].private);
+    const shown = priv ? 'is in this private repo; it becomes public if the repo is published' : 'is public';
     let m;
 
     // mojibake and replacement characters
@@ -322,7 +328,7 @@ const Goldfish = (() => {
     const cs = /\bcoming soon\b/gi;
     while ((m = cs.exec(p))) add('Blatant', 'note', 'Promise of future work ("coming soon") with no date.', m.index);
     const tpl = /\{\{[^}\n]*\}\}|<(?:your|repo|username|name|insert)[-\w ]*>|\[(?:your|insert)[-\w ]*\]/gi;
-    while ((m = tpl.exec(q))) add('Blatant', 'error', 'Template placeholder left in public text.', m.index, { evidence: m[0] });
+    while ((m = tpl.exec(q))) add('Blatant', 'error', `Template placeholder left in ${priv ? 'the' : 'public'} text.`, m.index, { evidence: m[0] });
 
     // present-tense claims with no date
     if (kind === 'md') {
@@ -365,17 +371,17 @@ const Goldfish = (() => {
     const winPath = /\b[A-Za-z]:\\Users\\([^\\\s"'`<>|]+)/g;
     while ((m = winPath.exec(text))) {
       if (/^(%?username%?|you|name|user|public|default|your[-_ ]?name|<.*>)$/i.test(m[1])) continue;
-      add('Blatant', 'warn', 'A personal Windows user folder is public.', m.index, { evidence: m[0], fix: 'Replace with %USERPROFILE% or <you>.' });
+      add('Blatant', 'warn', `A personal Windows user folder ${shown}.`, m.index, { evidence: m[0], fix: 'Replace with %USERPROFILE% or <you>.' });
     }
     const unixPath = /(?<![\w.:/-])\/(?:Users|home)\/([A-Za-z0-9._-]+)\//g;
     while ((m = unixPath.exec(text))) {
       if (/^(user|you|name|username|runner|ubuntu|shared|<.*>)$/i.test(m[1])) continue;
-      add('Blatant', 'warn', 'A personal home folder is public.', m.index, { evidence: m[0] });
+      add('Blatant', 'warn', `A personal home folder ${shown}.`, m.index, { evidence: m[0] });
     }
     const mail = /\b[\w.+-]+@[\w-]+(?:\.[\w-]+)+\b/g;
     while ((m = mail.exec(text))) {
       if (/noreply|no-reply|@example\.|@users\.noreply\.github\.com|\.(test|invalid|local|example)$/i.test(m[0])) continue;
-      add('Blatant', 'warn', 'An email address is public.', m.index, { evidence: m[0] });
+      add('Blatant', 'warn', `An email address ${shown}.`, m.index, { evidence: m[0] });
     }
 
     // never-say words (built-in plus the user's list)
@@ -433,6 +439,11 @@ const Goldfish = (() => {
         const guess = permutationOf(name, Object.keys(repoMap));
         sink.add('Blatant', 'error', repo, where, `Link to a repo that does not exist publicly: ${user}/${name}.`, {
           line, evidence: full, fix: guess ? `Did you mean ${guess}? (same words, different order)` : 'Fix the name, publish the repo, or remove the link.' });
+        continue;
+      }
+      // Public text that links to a private repo sends visitors to a 404. Private-to-private links are fine.
+      if (target.private && !(mine && mine.private)) {
+        sink.add('Blatant', 'error', repo, where, `Link to a private repo: visitors get a 404 for ${user}/${target.name}.`, { line, evidence: full, fix: 'Make that repo public, or remove the link.' });
         continue;
       }
       if (target.name !== name) sink.add('Document control', 'warn', repo, where, `Repo name case differs: link says "${name}", repo is "${target.name}".`, { line });
@@ -536,7 +547,9 @@ const Goldfish = (() => {
       }
       if (r.license == null || r.license === 'NOASSERTION') {
         const why = r.license === 'NOASSERTION' ? 'GitHub cannot identify the license text (shows "Other").' : 'No LICENSE file.';
-        add('Document control', 'warn', name, 'LICENSE', why, { fix: 'Add a standard license file (house default: MIT, "Copyright (c) <year> findastra").' });
+        const fix = 'Add a standard license file (house default: MIT, "Copyright (c) <year> findastra").';
+        if (r.private) add('Document control', 'note', name, 'LICENSE', `${why} Fine while the repo is private; add one before publishing it.`, { fix });
+        else add('Document control', 'warn', name, 'LICENSE', why, { fix });
       }
       for (const f of ['AGENTS.md', 'CLAUDE.md']) if (isPet && !has(r, f)) add('Document control', 'warn', name, f, `No ${f}, so an assistant picking this up has no rules to follow.`);
       if (!r.description) add('Document control', 'error', name, 'repo description', 'The repo has no description.', { fix: 'Add one plain sentence.' });
@@ -576,12 +589,12 @@ const Goldfish = (() => {
         }
         const modelRe = /\b(Claude|Opus|Sonnet|Haiku|Fable|GPT|Codex|Gemini)[\s-]*[\w.]*\d[\w.]*/i;
         if (![r.files['AGENTS.md'], r.files['CLAUDE.md'], r.files['README.md'], r.files['pet.json']].some((t) => t && modelRe.test(t))) add('Document control', 'warn', name, 'AGENTS.md', 'No model name and version recorded anywhere in the repo.', { fix: 'Add e.g. "Built with Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07".' });
-        if (registry && !(registry.pets || []).some((p) => p.repo === name)) add('Systemic', 'warn', name, 'findastra-pet-apps/pets.json', 'This pet is not listed in the Cage registry.', { fix: 'Add it to pets.json and the README table in findastra-pet-apps.' });
+        if (registry && !(registry.pets || []).some((p) => p.repo === name)) add('Systemic', 'warn', name, 'findastra-pet-apps/pets.json', 'This pet is not listed in the Cage registry.', { fix: r.private ? 'Add it to pets.json with "published": false until the repo is public.' : 'Add it to pets.json and the README table in findastra-pet-apps.' });
       }
 
       /* ---- Organizational ---- */
       if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) add('Organizational', 'warn', name, 'repo name', `Repo name "${name}" breaks the house rule: lowercase words joined by hyphens.`);
-      if (!topics.length) add('Organizational', 'warn', name, 'topics', 'No topics, so the repo is invisible to topic search.', { fix: 'Add 3 to 5 topics.' });
+      if (!topics.length && !r.private) add('Organizational', 'warn', name, 'topics', 'No topics, so the repo is invisible to topic search.', { fix: 'Add 3 to 5 topics.' });
       if (/^moved\b/i.test(r.description || '') && !r.archived) add('Organizational', 'warn', name, 'repo status', 'This repo is a "Moved:" stub but is not archived.', { fix: 'Archive it (Settings, Danger Zone) once the new home has the content.' });
       if (readme && !r.homepage && new RegExp(`${user}\\.github\\.io/${name}`, 'i').test(readme)) add('Organizational', 'note', name, 'homepage', 'README links a live site but the repo Website field is empty.', { fix: 'Put the live URL in About, Website.' });
       if (r.homepage) {
@@ -601,7 +614,7 @@ const Goldfish = (() => {
       let m;
       while ((m = bullet.exec(txt))) {
         const target = repoMap[m[1]];
-        if (!target) continue; // linkChecks already reports the dead link
+        if (!target || target.private) continue; // linkChecks already reports the dead or private link
         listed.add(target.name);
         const a = new Set(words(m[3])), b = new Set(words(target.description || ''));
         const stop = new Set(['a', 'an', 'the', 'for', 'of', 'to', 'and', 'in', 'on', 'is', 'that', 'what']);
@@ -610,26 +623,33 @@ const Goldfish = (() => {
         const jac = inter / (new Set([...A, ...B]).size || 1);
         if (B.length && jac < 0.3) add('Organizational', 'warn', user, 'README.md', `Profile blurb for ${target.name} and the repo's own description say different things.`, { line: lineOf(txt, m.index), evidence: `profile: "${clip(m[3], 70)}" | repo: "${clip(target.description || '', 70)}"`, fix: 'Make them the same sentence.' });
       }
-      for (const r of repos) if (r.name !== user && !listed.has(r.name) && !/^moved\b/i.test(r.description || '')) add('Organizational', 'note', user, 'README.md', `The profile README does not list ${r.name}.`);
+      for (const r of repos) if (r.name !== user && !r.private && !listed.has(r.name) && !/^moved\b/i.test(r.description || '')) add('Organizational', 'note', user, 'README.md', `The profile README does not list ${r.name}.`);
     }
 
     /* ---- Cage registry cross-check ---- */
     if (registry) {
-      for (const p of registry.pets || []) if (p.published !== false && !repoMap[p.repo]) add('Systemic', 'error', HUB, 'pets.json', `The Cage lists "${p.repo}", which does not exist publicly.`, { fix: 'Publish the repo or remove the entry.' });
+      for (const p of registry.pets || []) {
+        if (p.published === false) continue;
+        const t = repoMap[p.repo];
+        if (!t) add('Systemic', 'error', HUB, 'pets.json', `The Cage lists "${p.repo}", which does not exist publicly.`, { fix: 'Publish the repo or remove the entry.' });
+        else if (t.private) add('Systemic', 'error', HUB, 'pets.json', `The Cage lists "${p.repo}" as published, but that repo is private, so visitors get a 404.`, { fix: 'Make the repo public, or mark the entry "published": false.' });
+      }
     }
 
     /* ---- Systemic: patterns across the account ---- */
     const real = repos.filter((r) => r.name !== user);
+    const pub = real.filter((r) => !r.private); // licenses and topics only matter where visitors can see them
+    const pubWord = pub.length < real.length ? 'public ' : '';
     const share = (pred) => real.filter(pred).length;
-    const named = (pred) => real.filter(pred).map((r) => r.name);
-    const noLicense = named((r) => r.license == null || r.license === 'NOASSERTION');
-    if (noLicense.length) add('Systemic', 'warn', '(whole account)', 'licenses', `${noLicense.length} of ${real.length} repos have no recognizable license: ${noLicense.join(', ')}.`, { fix: 'Pick one house license and add it everywhere.' });
+    const named = (pred, list = real) => list.filter(pred).map((r) => r.name);
+    const noLicense = named((r) => r.license == null || r.license === 'NOASSERTION', pub);
+    if (noLicense.length) add('Systemic', 'warn', '(whole account)', 'licenses', `${noLicense.length} of ${pub.length} ${pubWord}repos have no recognizable license: ${noLicense.join(', ')}.`, { fix: 'Pick one house license and add it everywhere.' });
     for (const f of ['AGENTS.md', 'CLAUDE.md']) {
       const n = share((r) => has(r, f));
       if (n < real.length) add('Systemic', n ? 'warn' : 'note', '(whole account)', f, `${f} exists in ${n} of ${real.length} repos.`);
     }
-    const noTopic = named((r) => !(r.topics || []).length);
-    if (noTopic.length && noTopic.length < real.length) add('Systemic', 'note', '(whole account)', 'topics', `${real.length - noTopic.length} repos use topics and ${noTopic.length} do not: ${noTopic.join(', ')}.`);
+    const noTopic = named((r) => !(r.topics || []).length, pub);
+    if (noTopic.length && noTopic.length < pub.length) add('Systemic', 'note', '(whole account)', 'topics', `${pub.length - noTopic.length} ${pubWord}repos use topics and ${noTopic.length} do not: ${noTopic.join(', ')}.`);
     const dupes = {};
     for (const r of real) if (r.description) (dupes[r.description.toLowerCase()] ||= []).push(r.name);
     for (const names of Object.values(dupes)) if (names.length > 1) add('Systemic', 'warn', '(whole account)', 'descriptions', `Repos share one description: ${names.join(', ')}.`);
@@ -675,15 +695,24 @@ const Goldfish = (() => {
     return { by, cat, mood, total: findings.length };
   }
 
+  // "12 public repos" or "15 repos (3 private)", from the meta the CLI and the page both build.
+  function describeScope(meta) {
+    if (meta.scope !== 'all') return `${meta.repoCount} public repos`;
+    const priv = (meta.repos || []).filter((r) => r.private && !r.fork).length;
+    return `${meta.repoCount} repos (${priv} private)`;
+  }
+
   function toMarkdown(findings, meta) {
     const s = summarize(findings);
-    const out = [`# GitHub Goldfish report for ${meta.user}`, '', `*A pet app by Astra.* Audited ${meta.when}. ${meta.repoCount} public repos.`, '',
+    const priv = new Set((meta.repos || []).filter((r) => r.private).map((r) => r.name));
+    const out = [`# GitHub Goldfish report for ${meta.user}`, '', `*A pet app by Astra.* Audited ${meta.when}. ${describeScope(meta)}.`, '',
+      ...(priv.size ? ['This report names private repos. Keep it private.', ''] : []),
       `**${s.by.error} errors, ${s.by.warn} warnings, ${s.by.note} notes.**`, '',
       ...CATS.map((c) => `- ${c}: ${s.cat[c]}`), ''];
     const groups = {};
     for (const f of findings) (groups[f.repo] ||= []).push(f);
     for (const repo of Object.keys(groups)) {
-      out.push(`## ${repo}`, '');
+      out.push(`## ${repo}${priv.has(repo) ? ' (private)' : ''}`, '');
       for (const f of groups[repo]) {
         out.push(`- **${f.sev.toUpperCase()}** · ${f.cat} · \`${f.where}${f.line ? ':' + f.line : ''}\` — ${f.msg}${f.evidence ? ` Evidence: \`${f.evidence.replace(/`/g, "'")}\`.` : ''}${f.fix ? ` Fix: ${f.fix}` : ''}`);
       }
@@ -694,31 +723,70 @@ const Goldfish = (() => {
   }
 
   /* ---------- fetcher ---------- */
+  // Public repos come from /users/{user}/repos. Private repos need a token that belongs to the
+  // account being audited: then the list comes from /user/repos and private files are read through
+  // the contents API, so the token is only ever sent to api.github.com (never to raw.githubusercontent.com).
   async function collect(user, opts = {}) {
-    const { token, onProgress = () => {}, fetchFn = (typeof fetch !== 'undefined' ? fetch : null) } = opts;
+    const { token, publicOnly = false, onProgress = () => {}, fetchFn = (typeof fetch !== 'undefined' ? fetch : null) } = opts;
     const notes = [];
     const headers = { Accept: 'application/vnd.github+json', ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+    const header = (r, k) => (r.headers && typeof r.headers.get === 'function' ? r.headers.get(k) : null);
     let limited = false;
+    let unreadable = 0;
     const api = async (path) => {
       if (limited) return null;
       const r = await fetchFn('https://api.github.com' + path, { headers });
+      if (r.status === 401) throw new Error('GitHub rejected the token (401). Check it, or leave the box empty to read public repos only.');
       if (r.status === 403 || r.status === 429) { limited = true; return null; }
       if (r.status === 404) return { __404: true };
       if (r.status === 409) return { __empty: true };
       if (!r.ok) throw new Error(`GitHub said ${r.status} for ${path}`);
       return r.json();
     };
-    const raw = async (repo, branch, path) => {
-      const r = await fetchFn(`https://raw.githubusercontent.com/${user}/${repo}/${encodeURIComponent(branch)}/${path.split('/').map(encodeURIComponent).join('/')}`);
+    const apiText = async (path) => {
+      if (limited) return null;
+      const r = await fetchFn('https://api.github.com' + path, { headers: { ...headers, Accept: 'application/vnd.github.raw' } });
+      if (r.status === 429 || (r.status === 403 && header(r, 'x-ratelimit-remaining') === '0')) { limited = true; return null; }
+      if (r.status === 403) { unreadable++; return null; }
       return r.ok ? r.text() : null;
     };
+    const enc = (path) => path.split('/').map(encodeURIComponent).join('/');
+    const raw = async (repo, branch, path) => {
+      const r = await fetchFn(`https://raw.githubusercontent.com/${user}/${repo}/${encodeURIComponent(branch)}/${enc(path)}`);
+      return r.ok ? r.text() : null;
+    };
+    const readFile = (repo, path) => repo.private
+      ? apiText(`/repos/${user}/${encodeURIComponent(repo.name)}/contents/${enc(path)}?ref=${encodeURIComponent(repo.default_branch)}`)
+      : raw(repo.name, repo.default_branch, path);
     if (!/^[A-Za-z0-9-]{1,39}$/.test(user)) throw new Error('That does not look like a GitHub username.');
     const profile = await api(`/users/${user}`);
     if (!profile) throw new Error('GitHub is rate-limiting this browser. Wait an hour or paste a token (no scopes needed).');
     if (profile.__404) throw new Error(`No GitHub account called "${user}".`);
+
+    // Decide whether private repos can be listed: only with a token that belongs to this account.
+    let scope = 'public';
+    if (publicOnly) notes.push('Private repos were left out on request (public repos only).');
+    else if (!token) notes.push(`Private repos were not read. To include them, give a token for ${user} that can read private repos.`);
+    else {
+      const r = await fetchFn('https://api.github.com/user', { headers });
+      if (r.status === 401) throw new Error('GitHub rejected the token (401). Check it, or leave the box empty to read public repos only.');
+      if (r.status === 403 || r.status === 429) throw new Error('GitHub is rate-limiting this token. Wait an hour and try again.');
+      if (!r.ok) throw new Error(`GitHub said ${r.status} for /user`);
+      const me = await r.json();
+      if (String(me.login || '').toLowerCase() !== user.toLowerCase()) {
+        notes.push(`The token belongs to ${me.login || 'another account'}, not ${user}, so only ${user}'s public repos were read.`);
+      } else {
+        scope = 'all';
+        const scopes = header(r, 'x-oauth-scopes');
+        if (scopes != null && !/(^|[\s,])repo([\s,]|$)/.test(scopes)) notes.push('This classic token has no "repo" scope, so GitHub hides private repos from it. Add the repo scope, or use a fine-grained token with Contents: Read-only.');
+      }
+    }
+    const listPath = scope === 'all'
+      ? (page) => `/user/repos?per_page=100&affiliation=owner&visibility=all&sort=pushed&page=${page}`
+      : (page) => `/users/${user}/repos?per_page=100&type=owner&sort=pushed&page=${page}`;
     let list = [];
     for (let page = 1; page < 6; page++) {
-      const chunk = await api(`/users/${user}/repos?per_page=100&type=owner&sort=pushed&page=${page}`);
+      const chunk = await api(listPath(page));
       if (!chunk) throw new Error('GitHub is rate-limiting this browser. Wait an hour or paste a token (no scopes needed).');
       list = list.concat(chunk);
       if (chunk.length < 100) break;
@@ -726,8 +794,12 @@ const Goldfish = (() => {
     const repos = list.map((r) => ({
       name: r.name, description: r.description, homepage: r.homepage, topics: r.topics || [],
       license: r.license ? r.license.spdx_id : null, archived: r.archived, fork: r.fork,
+      private: r.private === true || r.visibility === 'private' || r.visibility === 'internal',
       default_branch: r.default_branch, pushed_at: r.pushed_at, html_url: r.html_url, files: {}, tree: null,
     }));
+    if (scope === 'all' && !repos.some((r) => r.private) && !notes.some((n) => /repo" scope/.test(n))) {
+      notes.push('The token showed no private repos. If you have some, give the token access to them (classic: repo scope; fine-grained: All repositories, Contents: Read-only).');
+    }
     const todo = repos.filter((r) => !r.fork);
     let done = 0;
     const work = async (r) => {
@@ -743,22 +815,23 @@ const Goldfish = (() => {
         names = names.concat(extra.slice(0, MAX_MD));
         names = names.filter((n) => TEXT_FILES.includes(n) ? r.tree.includes(n) : true);
       }
-      await Promise.all(names.map(async (n) => { r.files[n] = await raw(r.name, r.default_branch, n); }));
+      await Promise.all(names.map(async (n) => { r.files[n] = await readFile(r, n); }));
       done++;
       onProgress({ phase: 'done', repo: r.name, done, total: todo.length });
     };
     const queue = [...todo];
     await Promise.all(Array.from({ length: 4 }, async () => { for (let r; (r = queue.shift()); ) await work(r); }));
     if (limited) notes.push('GitHub rate-limited this browser part-way: file lists for some repos are missing, so link and file checks there are partial. Paste a token to avoid this.');
+    if (unreadable) notes.push(`GitHub refused ${unreadable} private file read(s). Give the token Contents: Read-only on every repo.`);
     let registry = null;
     const hub = repos.find((r) => r.name === HUB);
-    if (hub) { const t = await raw(HUB, hub.default_branch, 'pets.json'); try { registry = t ? JSON.parse(t) : null; } catch { notes.push('findastra-pet-apps/pets.json could not be parsed.'); } }
+    if (hub) { const t = await readFile(hub, 'pets.json'); try { registry = t ? JSON.parse(t) : null; } catch { notes.push('findastra-pet-apps/pets.json could not be parsed.'); } }
     else notes.push(`No ${HUB} repo yet, so the Cage registry check was skipped.`);
     if (repos.some((r) => r.fork)) notes.push(`Skipped ${repos.filter((r) => r.fork).length} fork(s): their text is not yours.`);
-    return { user, profile: { name: profile.name, bio: profile.bio, company: profile.company, location: profile.location, blog: profile.blog }, repos, registry, notes };
+    return { user, scope, profile: { name: profile.name, bio: profile.bio, company: profile.company, location: profile.location, blog: profile.blog }, repos, registry, notes };
   }
 
-  return { audit, collect, summarize, toMarkdown, normalizeNamingRules, CATS, headings, slugSet, resolvePath };
+  return { audit, collect, summarize, toMarkdown, describeScope, normalizeNamingRules, CATS, headings, slugSet, resolvePath };
 })();
 if (typeof module !== 'undefined') module.exports = Goldfish;
 </script>
@@ -870,7 +943,7 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
     const s = Goldfish.summarize(findings);
     $('results').hidden = false;
     const tiles = $('tiles'); tiles.replaceChildren(...Goldfish.CATS.map((c) => E('div', { className: 'tile' }, E('b', { textContent: s.cat[c] }), E('span', { textContent: c }))));
-    $('sevline').replaceChildren(E('strong', { textContent: `${s.by.error} errors` }), `, ${s.by.warn} warnings, ${s.by.note} notes across ${meta.repoCount} public repos.`);
+    $('sevline').replaceChildren(E('strong', { textContent: `${s.by.error} errors` }), `, ${s.by.warn} warnings, ${s.by.note} notes across ${Goldfish.describeScope(meta)}.`);
     const f = $('filters'); f.replaceChildren();
     const chip = (label, pressed, on) => { const b = E('button', { type: 'button', className: 'chip', textContent: label }); b.setAttribute('aria-pressed', pressed); b.onclick = on; return b; };
     ['All', ...Goldfish.CATS].forEach((c) => f.append(chip(c, c === catFilter, () => { catFilter = c; render(); })));
@@ -892,7 +965,10 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
         ul.append(li);
       }
       const errs = items.filter((x) => x.sev === 'error').length;
-      host.append(E('section', { className: 'repo' }, E('header', {}, E('h3', { textContent: repo }), E('span', { className: 'cat', textContent: `${items.length} finding${items.length === 1 ? '' : 's'}${errs ? `, ${errs} error${errs === 1 ? '' : 's'}` : ''}` })), ul));
+      const isPrivate = meta.repos.some((x) => x.name === repo && x.private);
+      const title = E('h3', { textContent: repo });
+      if (isPrivate) title.append(E('span', { className: 'tag-private', textContent: 'private' }));
+      host.append(E('section', { className: 'repo' }, E('header', {}, title, E('span', { className: 'cat', textContent: `${items.length} finding${items.length === 1 ? '' : 's'}${errs ? `, ${errs} error${errs === 1 ? '' : 's'}` : ''}` })), ul));
     }
     $('coverage').replaceChildren(...(meta.notes.length ? meta.notes : ['Everything in the checklist ran.']).map((n) => E('li', { textContent: n })));
   }
@@ -906,6 +982,7 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
     try {
       const data = await Goldfish.collect(user, {
         token: $('token').value.trim() || undefined,
+        publicOnly: !$('private').checked,
         onProgress: (p) => {
           if (p.phase === 'start') {
             if (stations.length !== p.total) layoutStations(p.total);
@@ -917,7 +994,7 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
       });
       const never = $('never').value.split('\n');
       findings = Goldfish.audit({ ...data, neverSay: never, namingRules });
-      meta = { user, repoCount: data.repos.filter((r) => !r.fork).length, repos: data.repos, notes: data.notes, when: new Date().toISOString().slice(0, 10) };
+      meta = { user, scope: data.scope, repoCount: data.repos.filter((r) => !r.fork).length, repos: data.repos, notes: data.notes, when: new Date().toISOString().slice(0, 10) };
       const s = Goldfish.summarize(findings);
       setMood(s.mood); fish.tx = W / 2 - 16; fish.ty = 14; redraw();
       setStatus(`Done: ${s.by.error} errors, ${s.by.warn} warnings, ${s.by.note} notes.`);

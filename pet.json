@@ -3,7 +3,7 @@
   "kind": "pet-app",
   "owner": "Astra",
   "sprite": "sprite-20261008.json",
-  "job": "Swims through every public word on a GitHub account and flags document-control, blatant, organizational and systemic errors.",
+  "job": "Swims through every word in a GitHub account's repos, public and (with a token for the account) private, and flags document-control, blatant, organizational and systemic errors.",
   "runs_on": "Any modern browser (index.html). Optional command line: Node 20 or newer.",
   "entry": "github-goldfish-20261008.html",
   "status": "hatching",
@@ -13,12 +13,12 @@
     "repository": "https://github.com/findastra/astras-pet-apps"
   },
   "version": "0.2.0-20261008",
-  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface and naming corrections prepared with Codex (GPT-6), 2026-10-08",
+  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface and naming corrections prepared with Codex (GPT-6), 2026-10-08; private-repo support added with Claude Opus 5.5 (claude-opus-5-5), 2026-10-09",
   "preview": "github-goldfish-20261008.html",
   "source": "https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008",
   "release_tag": "v0.2.0-20261008",
   "publication_status": "source-release-verified; local-browser-verified; see docs/publications-20261008.md",
   "visibility": "private",
-  "implementation_status": "The canonical and dated browser entries share the public-account auditor and explicit repo-scoped naming corrections. Rules stay in browser storage or a private CLI file; tokens stay only in memory. Private snapshots can be audited locally. There is no automatic learning or background monitoring. Original sprite.json is unchanged.",
-  "updated": "2026-10-08"
+  "implementation_status": "The canonical and dated browser entries share the auditor (public repos always; private repos too when the token belongs to the audited account) and explicit repo-scoped naming corrections. Rules stay in browser storage or a private CLI file; tokens stay only in memory. Private snapshots can be audited locally. There is no automatic learning or background monitoring. Original sprite.json is unchanged.",
+  "updated": "2026-10-09"
 }

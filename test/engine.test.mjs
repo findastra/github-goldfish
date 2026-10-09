@@ -234,6 +234,139 @@ test('collect: paging, rate limit message, missing user', async () => {
   assert.ok(data.notes.some((n) => /No findastra-pet-apps/.test(n)));
 });
 
+/* ---------- private repos ---------- */
+const mkRes = (status, body, hdrs = {}) => ({
+  status, ok: status >= 200 && status < 300, headers: { get: (k) => (k.toLowerCase() in hdrs ? hdrs[k.toLowerCase()] : null) },
+  json: async () => body, text: async () => (typeof body === 'string' ? body : ''),
+});
+const ghRepo = (name, over = {}) => ({ name, description: 'd', topics: ['x'], license: { spdx_id: 'MIT' }, default_branch: 'main', html_url: `https://github.com/me/${name}`, private: false, ...over });
+// A fake GitHub: records every request so tests can see which endpoints were used and where the token went.
+function fakeGitHub({ login = 'me', scopes = null } = {}) {
+  const calls = [];
+  const fetchFn = async (url, init = {}) => {
+    const auth = init.headers && init.headers.Authorization;
+    calls.push({ url, auth, accept: init.headers && init.headers.Accept });
+    if (url.endsWith('/users/me')) return mkRes(200, { name: 'Me', bio: 'hi' });
+    if (url === 'https://api.github.com/user') return auth ? mkRes(200, { login }, scopes == null ? {} : { 'x-oauth-scopes': scopes }) : mkRes(401, {});
+    if (url.includes('/user/repos')) return mkRes(200, [ghRepo('open'), ghRepo('secret-lab', { private: true, visibility: 'private' })]);
+    if (url.includes('/users/me/repos')) return mkRes(200, [ghRepo('open')]);
+    if (url.includes('/git/trees/')) return mkRes(200, { tree: [{ type: 'blob', path: 'README.md', size: 9 }] });
+    if (url.startsWith('https://raw.githubusercontent.com/me/open/') && url.endsWith('README.md')) return mkRes(200, '# open\n');
+    if (url.startsWith('https://api.github.com/repos/me/secret-lab/contents/README.md?ref=main')) return auth ? mkRes(200, '# secret lab\n') : mkRes(404, {});
+    return mkRes(404, '');
+  };
+  return { calls, fetchFn };
+}
+
+test('collect: a token for the account lists private repos and reads them only through api.github.com', async () => {
+  const gh = fakeGitHub();
+  const data = await G.collect('me', { token: 'tok', fetchFn: gh.fetchFn });
+  assert.equal(data.scope, 'all');
+  assert.equal(data.repos.map((r) => `${r.name}:${r.private}`).join(' '), 'open:false secret-lab:true');
+  assert.equal(data.repos[1].files['README.md'], '# secret lab\n');
+  assert.ok(gh.calls.some((c) => c.url.includes('/user/repos') && /visibility=all/.test(c.url) && /affiliation=owner/.test(c.url)));
+  assert.ok(gh.calls.some((c) => c.url.includes('/contents/README.md') && c.accept === 'application/vnd.github.raw'));
+  assert.ok(gh.calls.filter((c) => !c.url.startsWith('https://api.github.com/')).every((c) => !c.auth), 'token must never leave api.github.com');
+  assert.ok(!gh.calls.some((c) => c.url.includes('raw.githubusercontent.com/me/secret-lab')));
+  assert.ok(!data.notes.some((n) => /Private repos were not read/.test(n)));
+});
+
+test('collect: without a token, with another account\'s token, or with --public-only, only public repos are read', async () => {
+  for (const [opts, note] of [[{}, /Private repos were not read/], [{ token: 'tok', login: 'someone' }, /belongs to someone, not me/], [{ token: 'tok', publicOnly: true }, /left out on request/]]) {
+    const gh = fakeGitHub({ login: opts.login || 'me' });
+    const data = await G.collect('me', { token: opts.token, publicOnly: opts.publicOnly, fetchFn: gh.fetchFn });
+    assert.equal(data.scope, 'public');
+    assert.equal(data.repos.map((r) => r.name).join(' '), 'open');
+    assert.ok(!gh.calls.some((c) => c.url.includes('/user/repos')));
+    assert.ok(data.notes.some((n) => note.test(n)), JSON.stringify(data.notes));
+  }
+});
+
+test('collect: a rejected token says so, and a classic token without the repo scope is flagged', async () => {
+  const bad = async (url) => (url.endsWith('/users/me') ? mkRes(200, { name: 'Me' }) : mkRes(401, {}));
+  await assert.rejects(G.collect('me', { token: 'nope', fetchFn: bad }), /rejected the token/);
+  const noRepo = await G.collect('me', { token: 'tok', fetchFn: fakeGitHub({ scopes: 'read:user, gist' }).fetchFn });
+  assert.ok(noRepo.notes.some((n) => /no "repo" scope/.test(n)));
+  const withRepo = await G.collect('me', { token: 'tok', fetchFn: fakeGitHub({ scopes: 'repo, gist' }).fetchFn });
+  assert.ok(!withRepo.notes.some((n) => /scope/.test(n)));
+});
+
+test('public text linking to a private repo is an error; private-to-private links and plain mentions are not', () => {
+  const link = 'See [lab](https://github.com/me/secret-lab).';
+  const fs = run([
+    repo('open', { files: { 'README.md': `# open\n\n${link}\n` } }),
+    repo('secret-lab', { private: true }),
+    repo('other-private', { private: true, files: { 'README.md': `# other private\n\n${link} Also \`https://github.com/me/secret-lab\` in code.\n` } }),
+  ]);
+  const f = fs.filter((x) => /Link to a private repo/.test(x.msg));
+  assert.equal(f.length, 1);
+  assert.equal(f[0].repo, 'open');
+  assert.equal(f[0].sev, 'error');
+  assert.ok(!has(fs, /does not exist publicly/));
+});
+
+test('private repos are not nagged about public-only things: license is a note, no topics and profile listing are quiet', () => {
+  const fs = run([
+    repo('lab', { private: true, license: null, topics: [] }),
+    repo('me', { files: { 'README.md': '# me\n\nHello.\n' } }),
+  ]);
+  const lic = fs.find((x) => x.repo === 'lab' && x.where === 'LICENSE');
+  assert.equal(lic.sev, 'note');
+  assert.ok(!has(fs, /No topics/, 'lab'));
+  assert.ok(!has(fs, /does not list lab/));
+  assert.ok(!fs.some((x) => x.repo === '(whole account)' && /license|topics/.test(x.where)));
+  // the same repo, public, still warns
+  const pubFs = run([repo('lab', { license: null, topics: [] })]);
+  assert.equal(pubFs.find((x) => x.repo === 'lab' && x.where === 'LICENSE').sev, 'warn');
+  assert.ok(has(pubFs, /No topics/, 'lab'));
+});
+
+test('text checks still run on private repos, with wording that does not claim the text is public', () => {
+  const md = '# lab\n\nMail bob@real.org. TODO. teh end. {{name}}\n';
+  const fs = run([repo('lab', { private: true, files: { 'README.md': md } })]);
+  assert.ok(has(fs, /email address is in this private repo/, 'lab'));
+  assert.ok(!has(fs, /email address is public/, 'lab'));
+  assert.ok(has(fs, /Unfinished text/, 'lab'));
+  assert.ok(has(fs, /typo: "teh"/, 'lab'));
+  assert.ok(has(fs, /placeholder left in the text/, 'lab'));
+  assert.ok(has(run([repo('lab', { files: { 'README.md': md } })]), /email address is public/, 'lab'));
+});
+
+test('Cage registry: a published entry that is private is an error; published:false is not', () => {
+  const reg = (published) => ({ pets: [{ repo: 'hidden-pet', ...(published === undefined ? {} : { published }) }] });
+  const repos = [repo('hidden-pet', { private: true })];
+  assert.ok(has(run(repos, { registry: reg() }), /is private, so visitors get a 404/));
+  assert.ok(!has(run(repos, { registry: reg(false) }), /is private/));
+  assert.ok(!has(run([repo('hidden-pet')], { registry: reg() }), /is private/));
+});
+
+test('markdown report says how many repos are private and labels them', () => {
+  const repos = [repo('open', { description: '' }), repo('lab', { private: true, description: '' })];
+  const fs = run(repos);
+  const md = G.toMarkdown(fs, { user: 'me', when: '2026-10-09', scope: 'all', repoCount: 2, repos, notes: [] });
+  assert.match(md, /2 repos \(1 private\)/);
+  assert.match(md, /## lab \(private\)/);
+  assert.match(md, /names private repos/);
+  const pubMd = G.toMarkdown(fs, { user: 'me', when: '2026-10-09', repoCount: 2, notes: [] });
+  assert.match(pubMd, /2 public repos/);
+  assert.doesNotMatch(pubMd, /private/);
+});
+
+test('CLI --public-only is accepted and snapshots without a scope read as public', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'goldfish-test-'));
+  const snapshot = join(dir, 'audit-snapshot-20261009.json');
+  try {
+    writeFileSync(snapshot, JSON.stringify({ user: 'me', profile: { bio: 'Hello.' }, repos: [repo('a'), repo('me')], notes: [] }));
+    const cli = fileURLToPath(new URL('../scripts/goldfish-cli.mjs', import.meta.url));
+    const result = spawnSync(process.execPath, [cli, '--snapshot', snapshot, '--public-only'], { encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /across 2 public repos/);
+  } finally {
+    try { unlinkSync(snapshot); } catch (e) { if (e.code !== 'ENOENT') throw e; }
+    rmdirSync(dir);
+  }
+});
+
 test('the sprite embedded in index.html matches sprite.json (run scripts/sync-sprite.mjs if not)', async () => {
   const { readFileSync } = await import('node:fs');
   const { fileURLToPath } = await import('node:url');

@@ -2,7 +2,7 @@
   "name": "github-goldfish",
   "version": "0.2.0",
   "private": true,
-  "description": "A pixel goldfish that audits every public word on a GitHub account.",
+  "description": "A pixel goldfish that audits every word in a GitHub account's repos, private ones too with a token.",
   "license": "MIT",
   "scripts": {
     "test": "node --test \"test/*.test.mjs\"",

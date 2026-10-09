@@ -5,7 +5,7 @@
 Built with Claude Sonnet 5.5 (`claude-sonnet-5-5`), 2026-10-07. Record the model name and version here whenever a different assistant changes this repo.
 
 ## What this is
-A single-file browser app (`index.html`) plus a small command-line wrapper. It fetches a GitHub account's public repos and audits every public word. The audit engine lives in `<script id="engine">` inside `index.html`; the page UI is `<script id="app">`. Tests and the CLI lift the engine out of the HTML, so there is one copy of the logic.
+A single-file browser app (`index.html`) plus a small command-line wrapper. It fetches a GitHub account's repos (public always; private too when the token belongs to that account) and audits every word. The audit engine lives in `<script id="engine">` inside `index.html`; the page UI is `<script id="app">`. Tests and the CLI lift the engine out of the HTML, so there is one copy of the logic.
 
 ## Rules
 - **Keep it one file and zero dependencies.** No bundler, no npm packages. Node's built-in test runner only.
@@ -26,7 +26,8 @@ A single-file browser app (`index.html`) plus a small command-line wrapper. It f
 ## Running things
 - Tests: `node --test "test/*.test.mjs"`
 - Audit: `node scripts/goldfish-cli.mjs findastra`
-- GitHub allows 60 anonymous API calls an hour; set `GITHUB_TOKEN` for more.
+- GitHub allows 60 anonymous API calls an hour; set `GITHUB_TOKEN` for more. A token for the audited account also opens its private repos (`--public-only` leaves them out).
+- Private files are read through `api.github.com` contents, never `raw.githubusercontent.com`, so the token goes to one host only. Keep it that way.
 
 Preview update: Codex (GPT-6), 2026-10-08. Added a separate dated preview and current Cage PNG frames; the original index.html audit engine and its sprite.json remain unchanged.
 
@@ -35,3 +36,5 @@ Naming-correction update: Codex (GPT-6), 2026-10-08. Added owner-supplied reposi
 ## Learning from requested GitHub corrections
 
 When the owner requests a GitHub-specific naming correction, record the approved `repo` (`owner/name`), mistaken `from` and preferred `to` using **Remember correction** in the browser or a private `--naming-rules` JSON file outside Git. Do not add private project names to public defaults, tests or documentation. Re-audit the relevant snapshot; verify that a mistaken example is flagged and corrected source is clear. State whether the rule was saved and tested. This is explicit rule-based learning, not automatic observation or background monitoring. Keep the engine and interface in index.html and github-goldfish-20261008.html synchronized.
+
+Private-repo update: Claude Opus 5.5 (`claude-opus-5-5`), 2026-10-09. The collector lists private repos through `/user/repos` when the token belongs to the audited account, and reads their files through the contents API. Checks that only matter to visitors (license, topics, profile listing) are relaxed for private repos; public text linking to a private repo, and a published Cage entry for a private repo, are new errors. Browser and CLI have a public-only switch. index.html and github-goldfish-20261008.html are synchronized; sprite.json is unchanged.

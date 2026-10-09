@@ -2,7 +2,7 @@
 
 *A pet app by Astra.*
 
-A little pixel goldfish that swims through every public word on a GitHub account and tells you what is wrong, misplaced, or inconsistent. Point it at `findastra` and it visits each repo, reads the descriptions, topics, README and other Markdown files, then reports four kinds of problem:
+A little pixel goldfish that swims through every word in a GitHub account's repos and tells you what is wrong, misplaced, or inconsistent. It always reads the public repos; give it a token for the account and it reads the private ones too. Point it at `findastra` and it visits each repo, reads the descriptions, topics, README and other Markdown files, then reports four kinds of problem:
 
 | Kind | What it means | Examples |
 |---|---|---|
@@ -15,12 +15,13 @@ Every finding says where it is (file and line when it can), what is wrong, and a
 
 ## Run it
 
-**In a browser:** open `index.html`, leave the account as `findastra` (or type another), press **Release the goldfish**. Tested when served from `localhost` (`python -m http.server`). Opening the file directly should also work but has not been tested.
+**In a browser:** open `index.html`, leave the account as `findastra` (or type another), paste a token for that account if you want private repos checked too, press **Release the goldfish**. Untick **Include private repos** for a public-only run. Tested when served from `localhost` (`python -m http.server`). Opening the file directly should also work but has not been tested.
 
 **On the command line** (Node 20 or newer):
 
 ```bash
-node scripts/goldfish-cli.mjs findastra            # readable list
+node scripts/goldfish-cli.mjs findastra            # readable list (public repos, or all repos when GITHUB_TOKEN belongs to findastra)
+node scripts/goldfish-cli.mjs findastra --public-only   # leave private repos out even with a token
 node scripts/goldfish-cli.mjs findastra --md       # Markdown report
 node scripts/goldfish-cli.mjs findastra --save /private/audit-snapshot-20261008.json   # keep the fetched data outside the repo
 node scripts/goldfish-cli.mjs --snapshot /private/audit-snapshot-20261008.json         # re-audit with no network
@@ -49,15 +50,31 @@ node scripts/goldfish-cli.mjs --snapshot /private/audit-snapshot-20261008.json -
 
 The engine accepts the same array as `Goldfish.audit({ ...snapshot, namingRules })`. These are explicit, repository-scoped rules. They match whole names without regard to capitalization in the repository's description, fetched Markdown prose, and pet metadata; the preferred spelling does not trigger its own correction. Code, URLs, placeholders, other repositories, profile text, filenames and repository slugs are outside this check. Malformed or conflicting rules stop the audit with an explanation.
 
-After teaching a correction, rerun the relevant snapshot and check both a mistaken-name example and the corrected source. Report whether the rule was saved and tested. Goldfish does not watch edits or learn automatically, and a saved rule does not extend the public-only collector to private repositories. Private source snapshots can be audited locally. Keep those snapshots and naming rules outside Git.
+After teaching a correction, rerun the relevant snapshot and check both a mistaken-name example and the corrected source. Report whether the rule was saved and tested. Goldfish does not watch edits or learn automatically. Saved rules apply to private repos too when the audit includes them. Keep snapshots and naming rules outside Git; a snapshot that includes private repos holds their text.
 
 ### The words it must never find
 
 The page has a box for words that must never appear in public text (a legal name, your employer, a private address, a codename). They are saved in that browser only and are never written into the repo, so put your employer's name there rather than in any file. On the command line use `--never "word,word"`.
 
-### Rate limit and tokens
+### Tokens and private repos
 
-GitHub allows 60 anonymous requests an hour per network address. One audit of 12 repos costs about 14, so you get about four runs an hour. A token with no scopes raises that to 5,000. Paste it in the token box (kept in memory, never saved, sent only to `api.github.com`) or set `GITHUB_TOKEN` for the command line.
+Without a token Goldfish reads public repos only. GitHub allows 60 anonymous requests an hour per network address; one audit of 12 repos costs about 14, so you get about four runs an hour.
+
+With a token the limit is 5,000 an hour, and if the token belongs to the account being audited, Goldfish lists **every repo that account owns, private ones included**. Paste it in the token box (kept in memory, never saved, sent only to `api.github.com`) or set `GITHUB_TOKEN` for the command line. The token needs read access to private repos:
+
+- **Classic token:** the `repo` scope.
+- **Fine-grained token:** Repository access "All repositories", permissions Contents: Read-only (Metadata: Read-only comes with it).
+
+Private files are read through the GitHub API, so the token is never sent anywhere but `api.github.com`. A token for a different account only raises the rate limit; the run stays public-only and says so under "What the goldfish could not see".
+
+Private repos get the same checks, with four differences, because some rules only matter where visitors can see them:
+
+- A **public** README that links to a private repo is an error: visitors get a 404. Links between private repos are fine.
+- A Cage registry entry for a private repo is an error unless it says `"published": false`.
+- A missing license on a private repo is a note, not a warning, and private repos are left out of the account-wide license and topic tallies. Missing topics are not flagged, and the profile README is not expected to list them.
+- Findings such as an email address or a home folder say "is in this private repo" rather than "is public".
+
+Reports that include private repos name them and quote their text. Keep those reports private.
 
 ## Files
 
@@ -76,7 +93,7 @@ What the goldfish cannot do yet, plainly:
 
 - **Spelling** is a short typo list plus doubled words. It is not a dictionary.
 - **External links** are not tested (browsers cannot read another site's status). Only links to your own repos, files and `#anchors` are.
-- **Not read:** issues, pull requests, wikis, releases, gists, commit messages, text inside images, code comments, live websites, private repos, forks.
+- **Not read:** issues, pull requests, wikis, releases, gists, commit messages, text inside images, code comments, live websites, forks, private repos when no token for the account is given, and organizations' private repos (only repos the account itself owns are listed).
 - At most 20 extra `.md` files per repo are read, each under 200 KB.
 - Style checks (apostrophes, dashes, description punctuation) compare against what the account mostly does; they do not know what you meant.
 - Naming corrections use only the rules the owner explicitly saved or supplied; there is no automatic learning or background monitoring. Browser and CLI rule stores are separate.
@@ -86,7 +103,7 @@ What the goldfish cannot do yet, plainly:
 
 ## Credits
 
-Made by Astra. Built with Claude Sonnet 5.5 (`claude-sonnet-5-5`) on 2026-10-07. MIT licensed.
+Made by Astra. Built with Claude Sonnet 5.5 (`claude-sonnet-5-5`) on 2026-10-07. Private-repo support added with Claude Opus 5.5 (`claude-opus-5-5`) on 2026-10-09. MIT licensed.
 
 ## Browser interface · 2026-10-08
 
