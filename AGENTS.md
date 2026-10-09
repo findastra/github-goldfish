@@ -27,3 +27,5 @@ A single-file browser app (`index.html`) plus a small command-line wrapper. It f
 - Tests: `node --test test/`
 - Audit: `node scripts/goldfish-cli.mjs findastra`
 - GitHub allows 60 anonymous API calls an hour; set `GITHUB_TOKEN` for more.
+
+Preview update: Codex (GPT-6), 2026-10-08. Added a separate dated preview and current Cage PNG frames; the original index.html audit engine and its sprite.json remain unchanged.

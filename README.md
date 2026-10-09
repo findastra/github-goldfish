@@ -60,8 +60,16 @@ What the goldfish cannot do yet, plainly:
 - Style checks (apostrophes, dashes, description punctuation) compare against what the account mostly does; they do not know what you meant.
 - The finding "profile blurb vs repo description" is a word-overlap guess and can be wrong.
 - Status is **hatching**: version 0.1.0, first run on 2026-10-07.
-- It is not on GitHub yet, so the Cage's registry check says so until the Cage repo is published.
+- Live hosting and source release verification are recorded in `docs/publications-20261008.md`.
 
 ## Credits
 
 Made by Astra. Built with Claude Sonnet 5.5 (`claude-sonnet-5-5`) on 2026-10-07. MIT licensed.
+
+## Browser interface · 2026-10-08
+
+Open [github-goldfish-20261008.html](github-goldfish-20261008.html) in a modern browser. The dated browser entry runs the existing GitHub public-account auditor. The original index.html audit engine and original sprite.json remain unchanged. GitHub requests require a network connection; an optional token stays only in memory.
+
+Current Cage artwork is bundled in `art/` and indexed in `sprite-20261008.json`. Private records, tokens, logs and local machine metadata must stay outside Git.
+
+Source version `0.1.0-20261008`, tag `v0.1.0-20261008`. Publication checks are recorded in `docs/publications-20261008.md`; source publication does not establish live hosting.

@@ -6,3 +6,6 @@ goldfish-report-*.md
 .claude/
 .DS_Store
 Thumbs.db
+# Private browser exports
+*-export-*.json
+*-export-*.md

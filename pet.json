@@ -2,12 +2,23 @@
   "pet": "GitHub Goldfish",
   "kind": "pet-app",
   "owner": "Astra",
-  "sprite": "sprite.json",
+  "sprite": "sprite-20261008.json",
   "job": "Swims through every public word on a GitHub account and flags document-control, blatant, organizational and systemic errors.",
   "runs_on": "Any modern browser (index.html). Optional command line: Node 20 or newer.",
-  "entry": "index.html",
+  "entry": "github-goldfish-20261008.html",
   "status": "hatching",
-  "cage": { "topic": "pet-app", "home": "README.md" },
-  "version": "0.1.0",
-  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07"
+  "cage": {
+    "topic": "pet-app",
+    "home": "README.md",
+    "repository": "https://github.com/findastra/astras-pet-apps"
+  },
+  "version": "0.1.0-20261008",
+  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface prepared with Codex (GPT-6), 2026-10-08",
+  "preview": "github-goldfish-20261008.html",
+  "source": "https://github.com/findastra/github-goldfish/tree/v0.1.0-20261008",
+  "release_tag": "v0.1.0-20261008",
+  "publication_status": "source-release-prepared; see docs/publications-20261008.md",
+  "visibility": "private",
+  "implementation_status": "The dated browser entry runs the existing GitHub public-account auditor. The original index.html audit engine and original sprite.json remain unchanged. GitHub requests require a network connection; an optional token stays only in memory.",
+  "updated": "2026-10-08"
 }
