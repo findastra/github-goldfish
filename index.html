@@ -189,7 +189,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: .85rem; border-top: 1
   </section>
 
   <footer>
-    <p><strong>Checks:</strong> Document control (missing or malformed required files, pet files, headings, stray copies and secrets files), Blatant (typos, doubled words, mojibake, placeholders, secrets, broken links and anchors, brand spellings, never-say words), Organizational (names, topics, homepage, stubs, profile list), Systemic (patterns across the whole account: license, apostrophes, dashes, description style, the Cage registry).</p>
+    <p><strong>Checks:</strong> Document control (missing or malformed required files, pet files, headings, stray copies and secrets files), Blatant (typos, doubled words, mojibake, placeholders, secrets, broken links and anchors, brand spellings, never-say words), Organizational (names, topics, homepage, stubs, profile list, old pet words from the Cage's PET-WORDS.md), Systemic (patterns across the whole account: license, apostrophes, dashes, description style, the Cage registry).</p>
     <p><strong>Not checked:</strong> spelling beyond a short typo list and doubled words, external links (browsers cannot test them), issues, pull requests, wikis, releases, gists, commit messages, text inside images, private repos when no token for the account is given, organizations' private repos, the contents of live websites.</p>
     <p>GitHub Goldfish <a href="https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008">v0.2.0-20261008 source</a>. Built by Claude Sonnet 5.5 (<code>claude-sonnet-5-5</code>), 2026-10-07; naming corrections added by Codex (GPT-6), 2026-10-08; private repos added by Claude Opus 5.5 (<code>claude-opus-5-5</code>), 2026-10-09. Made for Astra. MIT licensed.</p>
   </footer>
@@ -202,7 +202,7 @@ const Goldfish = (() => {
   const SEV_ORDER = { error: 0, warn: 1, note: 2 };
   const PET_KEYS = ['pet', 'kind', 'owner', 'sprite', 'job', 'runs_on', 'entry', 'status', 'cage'];
   const PET_STATUS = ['hatching', 'growing', 'grown'];
-  const HUB = 'findastra-pet-apps';
+  const HUB = 'astras-pet-apps'; // the Cage: the Friendly Farmer's repo and pets.json
   const TEXT_FILES = ['README.md', 'AGENTS.md', 'CLAUDE.md', 'SECURITY.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'pet.json'];
   const MAX_MD = 20;
   const MAX_BYTES = 200000;
@@ -241,6 +241,33 @@ const Goldfish = (() => {
       seen.set(key, clean.to);
       return clean;
     }).filter((rule, i, all) => all.findIndex((other) => other.repo === rule.repo && other.from.toLowerCase() === rule.from.toLowerCase()) === i);
+  }
+
+  // Pet words: one name per part of a pet app. The list lives in the Cage registry
+  // (pets.json "words", explained in astras-pet-apps/PET-WORDS.md); the Goldfish only reads it.
+  const WORDS_PAGE = 'PET-WORDS.md'; // names the retired words on purpose
+  function petWords(registry) {
+    const parts = registry && registry.words && Array.isArray(registry.words.parts) ? registry.words.parts : [];
+    const out = [];
+    for (const p of parts.slice(0, 50)) {
+      if (!p || typeof p.say !== 'string' || !p.say.trim() || !Array.isArray(p.retired)) continue;
+      for (const r of p.retired.slice(0, 20)) if (typeof r === 'string' && r.trim() && r.length <= 60 && !/[\u0000-\u001f]/.test(r)) out.push({ from: r.trim().replace(/’/g, "'"), to: p.say.trim() });
+    }
+    return out.sort((a, b) => b.from.length - a.from.length); // longest first: "pet app icon chat" before "pet app icon"
+  }
+  function petWordChecks(repo, where, text, kind, ctx, sink) {
+    if (!text || !ctx.petWords.length || where === WORDS_PAGE) return;
+    let t = (kind === 'md' ? prose(text) : maskUrls(text)).replace(/’/g, "'"); // same length, so indexes still map to lines
+    for (const { from, to } of ctx.petWords) {
+      const esc = from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(`(?<![\\p{L}\\p{N}])${esc}(?![\\p{L}\\p{N}])`, 'giu');
+      for (const m of t.matchAll(re)) sink.add('Organizational', 'note', repo, where, `Old pet word: "${m[0]}". Say "${to}".`, {
+        line: kind === 'md' ? lineOf(text, m.index) : undefined,
+        evidence: clip(text.slice(Math.max(0, m.index - 25), m.index + m[0].length + 25).replace(/\n/g, ' ')),
+        fix: `One name per part of a pet app: see ${HUB}/${WORDS_PAGE}.`,
+      });
+      t = t.replace(re, blank); // a shorter phrase must not match inside a longer one already reported
+    }
   }
 
   function headings(md) {
@@ -489,7 +516,7 @@ const Goldfish = (() => {
       r.treeSet = r.tree ? new Set(r.tree.flatMap((p) => { const out = [p]; let d = p; while (d.includes('/')) { d = d.slice(0, d.lastIndexOf('/')); out.push(d); } return out; })) : null;
       repoMap[r.name] = r;
     }
-    const ctx = { user, repoMap, neverSay, namingRules };
+    const ctx = { user, repoMap, neverSay, namingRules, petWords: petWords(model.registry) };
     const has = (r, f) => (r.treeSet ? r.treeSet.has(f) : r.files[f] != null);
     const surfaces = []; // for systemic tallies
     const S = (repo, where, text, kind) => { const s = { repo, where, text, kind }; if (text) { surfaces.push(s); textChecks(s, ctx, sink); } return s; };
@@ -524,6 +551,11 @@ const Goldfish = (() => {
         } catch (e) {
           add('Document control', 'error', name, 'pet.json', `pet.json is not valid JSON (${e.message.split('\n')[0]}).`, { fix: 'Fix the syntax so the Cage can read it.' });
         }
+      }
+      if (isPet) {
+        petWordChecks(name, 'repo description', r.description, 'plain', ctx, sink);
+        for (const f of mdFiles) petWordChecks(name, f, r.files[f], 'md', ctx, sink);
+        if (pet) { const strs = []; (function walk(v) { if (typeof v === 'string') strs.push(v); else if (v && typeof v === 'object') Object.values(v).forEach(walk); })(pet); petWordChecks(name, 'pet.json', strs.join('\n'), 'plain', ctx, sink); }
       }
 
       /* ---- Document control ---- */
@@ -567,7 +599,7 @@ const Goldfish = (() => {
       /* ---- Pet files ---- */
       if (isPet) {
         if (!topics.includes('pet-app')) add('Document control', 'error', name, 'topics', 'Has pet.json but not the GitHub topic "pet-app", so the Cage cannot find it.', { fix: 'Repo page, gear next to About, add topic pet-app.' });
-        if (!hasPetJson) add('Document control', 'error', name, 'pet.json', 'Tagged pet-app but has no pet.json.', { fix: 'Add pet.json (see findastra-pet-apps/PET-FILES.md).' });
+        if (!hasPetJson) add('Document control', 'error', name, 'pet.json', 'Tagged pet-app but has no pet.json.', { fix: `Add pet.json (see ${HUB}/PET-FILES.md).` });
         if (pet) {
           for (const k of PET_KEYS) if (pet[k] == null || pet[k] === '') add('Document control', 'error', name, 'pet.json', `pet.json is missing "${k}".`);
           if (pet.kind != null && pet.kind !== 'pet-app') add('Document control', 'error', name, 'pet.json', `"kind" should be "pet-app", not "${pet.kind}".`);
@@ -589,7 +621,7 @@ const Goldfish = (() => {
         }
         const modelRe = /\b(Claude|Opus|Sonnet|Haiku|Fable|GPT|Codex|Gemini)[\s-]*[\w.]*\d[\w.]*/i;
         if (![r.files['AGENTS.md'], r.files['CLAUDE.md'], r.files['README.md'], r.files['pet.json']].some((t) => t && modelRe.test(t))) add('Document control', 'warn', name, 'AGENTS.md', 'No model name and version recorded anywhere in the repo.', { fix: 'Add e.g. "Built with Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07".' });
-        if (registry && !(registry.pets || []).some((p) => p.repo === name)) add('Systemic', 'warn', name, 'findastra-pet-apps/pets.json', 'This pet is not listed in the Cage registry.', { fix: r.private ? 'Add it to pets.json with "published": false until the repo is public.' : 'Add it to pets.json and the README table in findastra-pet-apps.' });
+        if (registry && !(registry.pets || []).some((p) => p.repo === name)) add('Systemic', 'warn', name, `${HUB}/pets.json`, 'This pet is not listed in the Cage registry.', { fix: r.private ? 'Add it to pets.json with "published": false until the repo is public.' : `Add it to pets.json in ${HUB} and run its build.` });
       }
 
       /* ---- Organizational ---- */
@@ -610,7 +642,7 @@ const Goldfish = (() => {
     else if (profRepo.files['README.md']) {
       const txt = profRepo.files['README.md'];
       const listed = new Set();
-      const bullet = /^[-*]\s+\[`?([^\]`]+?)`?\]\(([^)]+)\)\s*(?:--|—|–|:|-)\s*(.+)$/gm;
+      const bullet = /^(?:[-*]|\d+\.)\s+\[`?([^\]`]+?)`?\]\(([^)]+)\)\s*(?:--|—|–|:|-)\s*(.+)$/gm;
       let m;
       while ((m = bullet.exec(txt))) {
         const target = repoMap[m[1]];
@@ -825,13 +857,13 @@ const Goldfish = (() => {
     if (unreadable) notes.push(`GitHub refused ${unreadable} private file read(s). Give the token Contents: Read-only on every repo.`);
     let registry = null;
     const hub = repos.find((r) => r.name === HUB);
-    if (hub) { const t = await readFile(hub, 'pets.json'); try { registry = t ? JSON.parse(t) : null; } catch { notes.push('findastra-pet-apps/pets.json could not be parsed.'); } }
+    if (hub) { const t = await readFile(hub, 'pets.json'); try { registry = t ? JSON.parse(t) : null; } catch { notes.push(`${HUB}/pets.json could not be parsed.`); } }
     else notes.push(`No ${HUB} repo yet, so the Cage registry check was skipped.`);
     if (repos.some((r) => r.fork)) notes.push(`Skipped ${repos.filter((r) => r.fork).length} fork(s): their text is not yours.`);
     return { user, scope, profile: { name: profile.name, bio: profile.bio, company: profile.company, location: profile.location, blog: profile.blog }, repos, registry, notes };
   }
 
-  return { audit, collect, summarize, toMarkdown, describeScope, normalizeNamingRules, CATS, headings, slugSet, resolvePath };
+  return { audit, collect, summarize, toMarkdown, describeScope, normalizeNamingRules, petWords, CATS, headings, slugSet, resolvePath };
 })();
 if (typeof module !== 'undefined') module.exports = Goldfish;
 </script>

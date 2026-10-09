@@ -189,10 +189,10 @@ test('systemic: Cage registry both directions', () => {
 });
 
 test('registry entries marked published:false are not errors; the Cage repo itself is audited as a pet', () => {
-  const reg = { pets: [{ repo: 'not-yet', published: false }, { repo: 'findastra-pet-apps' }] };
-  const fs = run([repo('findastra-pet-apps', { topics: [], files: { 'README.md': '# Findastra Pet Apps\n', 'pet.json': '{"pet":"Friendly Farmer"}' } })], { registry: reg });
+  const reg = { pets: [{ repo: 'not-yet', published: false }, { repo: 'astras-pet-apps' }] };
+  const fs = run([repo('astras-pet-apps', { topics: [], files: { 'README.md': '# Astras Pet Apps\n', 'pet.json': '{"pet":"Friendly Farmer"}' } })], { registry: reg });
   assert.ok(!has(fs, /"not-yet", which does not exist/));
-  assert.ok(has(fs, /not the GitHub topic/, 'findastra-pet-apps'));
+  assert.ok(has(fs, /not the GitHub topic/, 'astras-pet-apps'));
 });
 
 test('systemic: mixed apostrophes and dashes are reported once for the account', () => {
@@ -231,7 +231,7 @@ test('collect: paging, rate limit message, missing user', async () => {
   const data = await G.collect('me', { fetchFn });
   assert.equal(data.repos.length, 1);
   assert.equal(data.repos[0].files['README.md'], '# r\n');
-  assert.ok(data.notes.some((n) => /No findastra-pet-apps/.test(n)));
+  assert.ok(data.notes.some((n) => /No astras-pet-apps/.test(n)));
 });
 
 /* ---------- private repos ---------- */
@@ -388,4 +388,54 @@ test('dated browser entry keeps the canonical engine and UI synchronized', async
   const canonical = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
   const dated = readFileSync(new URL('../github-goldfish-20261008.html', import.meta.url), 'utf8');
   assert.equal(dated, canonical);
+});
+
+// Pet words come from the Cage registry (pets.json "words"). Claude Opus 5.5, 2026-10-09.
+const petJsonOk = JSON.stringify({ pet: 'P', kind: 'pet-app', owner: 'Astra', sprite: 'README.md', job: 'j', runs_on: 'r', entry: 'README.md', status: 'hatching', cage: { topic: 'pet-app', home: 'README.md' } });
+const words = { parts: [
+  { say: 'pet', means: 'the character', retired: ['pixel twin'] },
+  { say: 'desktop pet', means: 'floats on the desktop', retired: ['pet app icon'] },
+  { say: 'quick chat', means: 'typing box', retired: ['pet app icon chat'] },
+  { say: 'app', means: 'the window', retired: ["pet app's app", 'browser companion'] },
+] };
+const petRepo = (name, readme, over = {}) => repo(name, { topics: ['pet-app'], files: { 'README.md': readme, 'pet.json': petJsonOk }, ...over });
+
+test('pet words: old names in pet repos are quiet notes with the current word', () => {
+  const fs = run([petRepo('pp', '# Pp\n\n*A pet app by Astra.*\n\nChip is a pixel twin.\nOpen the browser companion.\n')], { registry: { pets: [{ repo: 'pp' }], words } });
+  const w = fs.filter((f) => /Old pet word/.test(f.msg));
+  assert.equal(w.length, 2);
+  assert.ok(w.every((f) => f.sev === 'note' && f.cat === 'Organizational'));
+  assert.ok(w.some((f) => /"pixel twin"\. Say "pet"/.test(f.msg) && f.line === 5));
+  assert.ok(w.some((f) => /Say "app"/.test(f.msg) && /PET-WORDS\.md/.test(f.fix)));
+});
+
+test('pet words: the longest phrase wins, and curly apostrophes count', () => {
+  const fs = run([petRepo('pp', "# Pp\n\nThe pet app icon chat opens. The pet app’s app is big.\n")], { registry: { pets: [{ repo: 'pp' }], words } });
+  const w = fs.filter((f) => /Old pet word/.test(f.msg));
+  assert.equal(w.length, 2);
+  assert.ok(w.some((f) => /Say "quick chat"/.test(f.msg)));
+  assert.ok(!w.some((f) => /Say "desktop pet"/.test(f.msg)));
+  assert.ok(w.some((f) => /Say "app"/.test(f.msg)));
+});
+
+test('pet words do not fire in code, URLs, other words, non-pet repos, PET-WORDS.md, or without a list', () => {
+  const text = '# Pp\n\n`pixel twin` and https://x.test/pixel twin and pixel-twins and pixel twinkle.\n\n```\npixel twin\n```\n';
+  const quiet = (fs) => !has(fs, /Old pet word/);
+  assert.ok(quiet(run([petRepo('pp', text)], { registry: { pets: [{ repo: 'pp' }], words } })));
+  assert.ok(quiet(run([repo('plain', { files: { 'README.md': '# Plain\n\nA pixel twin.\n' } })], { registry: { pets: [], words } })));
+  assert.ok(quiet(run([petRepo('pp', '# Pp\n\nA pixel twin.\n', { files: { 'README.md': '# Pp\n', 'PET-WORDS.md': '# Words\n\nNot: pixel twin.\n', 'pet.json': petJsonOk } })], { registry: { pets: [{ repo: 'pp' }], words } })));
+  assert.ok(quiet(run([petRepo('pp', '# Pp\n\nA pixel twin.\n')], { registry: { pets: [{ repo: 'pp' }] } })));
+});
+
+test('pet words: a malformed list from the registry is ignored, never thrown', () => {
+  for (const bad of [null, 'x', { parts: 'x' }, { parts: [null, 1, { say: 'pet' }, { say: '', retired: ['a'] }, { say: 'pet', retired: [5, '', 'x'.repeat(99)] }] }]) {
+    assert.doesNotThrow(() => run([petRepo('pp', '# Pp\n\nA pixel twin.\n')], { registry: { pets: [{ repo: 'pp' }], words: bad } }));
+  }
+  assert.equal(G.petWords({ words: { parts: [{ say: 'pet', retired: ['a b', 'a b c'] }] } }).map((w) => w.from).join('|'), 'a b c|a b'); // longest first
+});
+
+test('the profile list can be numbered (a running list) as well as bulleted', () => {
+  const prof = repo('me', { files: { 'README.md': '1. [`aa`](https://github.com/me/aa) -- A plain sentence.\n' } });
+  const fs = run([prof, repo('aa')]);
+  assert.ok(!has(fs, /does not list aa/));
 });

@@ -8,7 +8,7 @@ A little pixel goldfish that swims through every word in a GitHub account's repo
 |---|---|---|
 | **Document control** | A required file is missing, malformed, or uncontrolled | no README or LICENSE, GitHub cannot recognize the license, pet repo without `pet.json` or the `pet-app` topic, README missing the "A pet app by Astra." line, committed `.env`, files named `... (1).txt` or `...-final.md` |
 | **Blatant** | A plain error a visitor can see | a link to a repo that does not exist, a relative link or `#anchor` that goes nowhere, doubled words, typos, garbled characters, leftover `TODO`, a token pasted into a README, a personal folder path, any word on your never-say list (a legal name, an employer) |
-| **Organizational** | Things are in the wrong place or named off-pattern | default branch is not `main`, "Moved:" stub repos that are not archived, no topics, README title that does not echo the repo name, profile blurb that disagrees with the repo's own description |
+| **Organizational** | Things are in the wrong place or named off-pattern | default branch is not `main`, "Moved:" stub repos that are not archived, no topics, README title that does not echo the repo name, profile blurb that disagrees with the repo's own description, an old pet word such as "pixel twin" (the list comes from the Cage's [PET-WORDS.md](https://github.com/findastra/astras-pet-apps/blob/main/PET-WORDS.md)) |
 | **Systemic** | A pattern across the whole account | mixed apostrophes (`'` and `’`), mixed dashes, mixed description style, some repos with a license and some without, a pet missing from the Cage registry |
 
 Every finding says where it is (file and line when it can), what is wrong, and a suggested fix. Severity is **error**, **warning** or **note**. The goldfish's face follows the result: happy when clean, calm with only warnings, worried with a few errors, alarmed with more than five, curious while it works, and sad if it could not finish. It swims and hops around its tank the whole time.
@@ -81,8 +81,8 @@ Reports that include private repos name them and quote their text. Keep those re
 | File | What it is |
 |---|---|
 | `index.html` | The whole app: the tank, the audit engine, the report. One file, no dependencies. |
-| `sprite.json` | The 32×32 pixel twin in nine moods (idle, blink, happy, curious, worried, sad, sick, alarmed, sleep). The art is drawn in the Cage repo; after copying new frames here run `node scripts/sync-sprite.mjs`. |
-| `pet.json` | Pet card for the Cage ([findastra-pet-apps](https://github.com/findastra/findastra-pet-apps)). |
+| `sprite.json` | The Goldfish's 32×32 sprite in nine moods (idle, blink, happy, curious, worried, sad, sick, alarmed, sleep). The art is drawn in the Cage repo; after copying new frames here run `node scripts/sync-sprite.mjs`. |
+| `pet.json` | Pet card for the Cage ([astras-pet-apps](https://github.com/findastra/astras-pet-apps)). |
 | `scripts/` | Command-line audit, the loader that lifts the engine out of `index.html`, the sprite sync. |
 | `test/` | Engine tests. |
 | `AGENTS.md`, `CLAUDE.md` | Rules for any assistant that picks this up. |
@@ -103,7 +103,7 @@ What the goldfish cannot do yet, plainly:
 
 ## Credits
 
-Made by Astra. Built with Claude Sonnet 5.5 (`claude-sonnet-5-5`) on 2026-10-07. Private-repo support added with Claude Opus 5.5 (`claude-opus-5-5`) on 2026-10-09. MIT licensed.
+Made by Astra. Built with Claude Sonnet 5.5 (`claude-sonnet-5-5`) on 2026-10-07. Private-repo support added with Claude Opus 5.5 (`claude-opus-5-5`) on 2026-10-09, and pet words the same day. MIT licensed.
 
 ## Browser interface · 2026-10-08
 

@@ -14,14 +14,15 @@ A single-file browser app (`index.html`) plus a small command-line wrapper. It f
 - **Public-facing credit is Astra.** Keep work information (including any employer's name) out of this repo.
 - **Every new check needs a test** in `test/engine.test.mjs`, including a "does not fire" case (code blocks, URLs, placeholders such as `<you>`).
 - **Prefer a quiet check to a noisy one.** A false alarm on a clean account costs trust. When unsure, use severity `note`.
-- **`sprite.json` is the source of truth** for the pixel twin (32×32, nine moods), copied from the Cage repo's art. After editing it run `node scripts/sync-sprite.mjs`; a test fails if they drift. Do not redraw it by hand here; the style lives in `findastra-pet-apps/scripts/pets-art.mjs`.
+- **`sprite.json` is the source of truth** for the Goldfish's sprite (32×32, nine moods), copied from the Cage repo's art. After editing it run `node scripts/sync-sprite.mjs`; a test fails if they drift. Do not redraw it by hand here; the style lives in `astras-pet-apps/scripts/pets-art.mjs`.
 - Finding categories are exactly: Document control, Blatant, Organizational, Systemic. Severities: error, warn, note.
 - Claims about the present need a source or a date. Say plainly what is not done (see README "Limits").
 
 ## House conventions the goldfish enforces (and the repo itself follows)
 - Repo and folder names: lowercase words joined by hyphens. README title is the same words in Title Case.
+- Pet words: one name per part of a pet app (pet, app, desktop pet, bubble, quick chat, app icon, pet well). The Goldfish reads the list from `words` in the Cage's `pets.json` and reports old names as notes; [PET-WORDS.md](https://github.com/findastra/astras-pet-apps/blob/main/PET-WORDS.md) explains them. Never hard-code the list here: the Farmer owns it.
 - Every pet repo: `pet.json`, topic `pet-app`, README opening with `*A pet app by Astra.*`, `AGENTS.md`, `CLAUDE.md`, a 32×32 sprite with nine moods, the model and version recorded.
-- Pets live in the Cage: <https://github.com/findastra/findastra-pet-apps>. Add or update this pet's row in its `pets.json` and README table when this repo changes status (hatching, growing, grown).
+- Pets live in the Cage: <https://github.com/findastra/astras-pet-apps>. Add or update this pet's row in its `pets.json` and README table when this repo changes status (hatching, growing, grown).
 
 ## Running things
 - Tests: `node --test "test/*.test.mjs"`
@@ -38,3 +39,5 @@ Naming-correction update: Codex (GPT-6), 2026-10-08. Added owner-supplied reposi
 When the owner requests a GitHub-specific naming correction, record the approved `repo` (`owner/name`), mistaken `from` and preferred `to` using **Remember correction** in the browser or a private `--naming-rules` JSON file outside Git. Do not add private project names to public defaults, tests or documentation. Re-audit the relevant snapshot; verify that a mistaken example is flagged and corrected source is clear. State whether the rule was saved and tested. This is explicit rule-based learning, not automatic observation or background monitoring. Keep the engine and interface in index.html and github-goldfish-20261008.html synchronized.
 
 Private-repo update: Claude Opus 5.5 (`claude-opus-5-5`), 2026-10-09. The collector lists private repos through `/user/repos` when the token belongs to the audited account, and reads their files through the contents API. Checks that only matter to visitors (license, topics, profile listing) are relaxed for private repos; public text linking to a private repo, and a published Cage entry for a private repo, are new errors. Browser and CLI have a public-only switch. index.html and github-goldfish-20261008.html are synchronized; sprite.json is unchanged.
+
+Pet-words update: Claude Opus 5.5 (`claude-opus-5-5`), 2026-10-09. The Cage repo is `astras-pet-apps` (it was `findastra-pet-apps`, so the registry was being skipped). The engine reads `words` from the Cage's pets.json and flags retired part names in pet repos as Organizational notes, longest phrase first, never in code, URLs or PET-WORDS.md itself. The profile list can also be a numbered running list. index.html and github-goldfish-20261008.html are synchronized; sprite.json is unchanged.

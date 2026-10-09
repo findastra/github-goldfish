@@ -1,5 +1,5 @@
 // sprite.json is the source of truth. Run this after editing it to copy it into index.html.
-// (The art itself is drawn in the Cage repo, findastra-pet-apps/scripts/pets-art.mjs; copy its goldfish frames here.)
+// (The art itself is drawn in the Cage repo, astras-pet-apps/scripts/pets-art.mjs; copy its goldfish frames here.)
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
