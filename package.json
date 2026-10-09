@@ -1,6 +1,6 @@
 {
   "name": "github-goldfish",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "A pixel goldfish that audits every public word on a GitHub account.",
   "license": "MIT",

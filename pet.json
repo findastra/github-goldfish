@@ -12,13 +12,13 @@
     "home": "README.md",
     "repository": "https://github.com/findastra/astras-pet-apps"
   },
-  "version": "0.1.0-20261008",
-  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface prepared with Codex (GPT-6), 2026-10-08",
+  "version": "0.2.0-20261008",
+  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface and naming corrections prepared with Codex (GPT-6), 2026-10-08",
   "preview": "github-goldfish-20261008.html",
-  "source": "https://github.com/findastra/github-goldfish/tree/v0.1.0-20261008",
-  "release_tag": "v0.1.0-20261008",
+  "source": "https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008",
+  "release_tag": "v0.2.0-20261008",
   "publication_status": "source-release-prepared; see docs/publications-20261008.md",
   "visibility": "private",
-  "implementation_status": "The dated browser entry runs the existing GitHub public-account auditor. The original index.html audit engine and original sprite.json remain unchanged. GitHub requests require a network connection; an optional token stays only in memory.",
+  "implementation_status": "The canonical and dated browser entries share the public-account auditor and explicit repo-scoped naming corrections. Rules stay in browser storage or a private CLI file; tokens stay only in memory. Private snapshots can be audited locally. There is no automatic learning or background monitoring. Original sprite.json is unchanged.",
   "updated": "2026-10-08"
 }

@@ -24,8 +24,14 @@ A single-file browser app (`index.html`) plus a small command-line wrapper. It f
 - Pets live in the Cage: <https://github.com/findastra/findastra-pet-apps>. Add or update this pet's row in its `pets.json` and README table when this repo changes status (hatching, growing, grown).
 
 ## Running things
-- Tests: `node --test test/`
+- Tests: `node --test "test/*.test.mjs"`
 - Audit: `node scripts/goldfish-cli.mjs findastra`
 - GitHub allows 60 anonymous API calls an hour; set `GITHUB_TOKEN` for more.
 
 Preview update: Codex (GPT-6), 2026-10-08. Added a separate dated preview and current Cage PNG frames; the original index.html audit engine and its sprite.json remain unchanged.
+
+Naming-correction update: Codex (GPT-6), 2026-10-08. Added owner-supplied repository-scoped naming rules to the engine, CLI and browser interface. The dated browser entry is synchronized with index.html; sprite.json is unchanged.
+
+## Learning from requested GitHub corrections
+
+When the owner requests a GitHub-specific naming correction, record the approved `repo` (`owner/name`), mistaken `from` and preferred `to` using **Remember correction** in the browser or a private `--naming-rules` JSON file outside Git. Do not add private project names to public defaults, tests or documentation. Re-audit the relevant snapshot; verify that a mistaken example is flagged and corrected source is clear. State whether the rule was saved and tested. This is explicit rule-based learning, not automatic observation or background monitoring. Keep the engine and interface in index.html and github-goldfish-20261008.html synchronized.

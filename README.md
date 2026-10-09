@@ -22,13 +22,34 @@ Every finding says where it is (file and line when it can), what is wrong, and a
 ```bash
 node scripts/goldfish-cli.mjs findastra            # readable list
 node scripts/goldfish-cli.mjs findastra --md       # Markdown report
-node scripts/goldfish-cli.mjs findastra --save snap.snapshot.json   # keep the fetched data
-node scripts/goldfish-cli.mjs --snapshot snap.snapshot.json         # re-audit with no network
+node scripts/goldfish-cli.mjs findastra --save /private/audit-snapshot-20261008.json   # keep the fetched data outside the repo
+node scripts/goldfish-cli.mjs --snapshot /private/audit-snapshot-20261008.json         # re-audit with no network
 ```
 
 The command exits with code 1 when there is any error-level finding, so it can gate a scheduled job later.
 
-**Tests:** `node --test test/` (22 tests, no dependencies).
+**Tests:** `node --test "test/*.test.mjs"` (no dependencies).
+
+### Teach a naming correction
+
+When the owner corrects a project name during GitHub work, save the approved correction so Goldfish can flag it on later audits. In either browser entry, use **Naming corrections Goldfish remembers**: enter the full `owner/repository`, the mistaken name, and the preferred name, then press **Remember correction**. The list is saved only in that browser on that site. **Forget** removes a correction; entering the same repository and mistaken name updates its preferred name. Browser storage failures are shown plainly. Tokens are never saved.
+
+For the CLI, keep a JSON array in a private file **outside the repository**, for example `naming-rules-20261008.json`:
+
+```json
+[
+  { "repo": "example/blue-hall", "from": "Blue World", "to": "Blue Hall" }
+]
+```
+
+```bash
+node scripts/goldfish-cli.mjs example --naming-rules /private/naming-rules-20261008.json
+node scripts/goldfish-cli.mjs --snapshot /private/audit-snapshot-20261008.json --naming-rules /private/naming-rules-20261008.json
+```
+
+The engine accepts the same array as `Goldfish.audit({ ...snapshot, namingRules })`. These are explicit, repository-scoped rules. They match whole names without regard to capitalization in the repository's description, fetched Markdown prose, and pet metadata; the preferred spelling does not trigger its own correction. Code, URLs, placeholders, other repositories, profile text, filenames and repository slugs are outside this check. Malformed or conflicting rules stop the audit with an explanation.
+
+After teaching a correction, rerun the relevant snapshot and check both a mistaken-name example and the corrected source. Report whether the rule was saved and tested. Goldfish does not watch edits or learn automatically, and a saved rule does not extend the public-only collector to private repositories. Private source snapshots can be audited locally. Keep those snapshots and naming rules outside Git.
 
 ### The words it must never find
 
@@ -58,8 +79,9 @@ What the goldfish cannot do yet, plainly:
 - **Not read:** issues, pull requests, wikis, releases, gists, commit messages, text inside images, code comments, live websites, private repos, forks.
 - At most 20 extra `.md` files per repo are read, each under 200 KB.
 - Style checks (apostrophes, dashes, description punctuation) compare against what the account mostly does; they do not know what you meant.
+- Naming corrections use only the rules the owner explicitly saved or supplied; there is no automatic learning or background monitoring. Browser and CLI rule stores are separate.
 - The finding "profile blurb vs repo description" is a word-overlap guess and can be wrong.
-- Status is **hatching**: version 0.1.0, first run on 2026-10-07.
+- Status is **hatching**: source version 0.2.0-20261008; first run on 2026-10-07.
 - Live hosting and source release verification are recorded in `docs/publications-20261008.md`.
 
 ## Credits
@@ -68,8 +90,8 @@ Made by Astra. Built with Claude Sonnet 5.5 (`claude-sonnet-5-5`) on 2026-10-07.
 
 ## Browser interface · 2026-10-08
 
-Open [github-goldfish-20261008.html](github-goldfish-20261008.html) in a modern browser. The dated browser entry runs the existing GitHub public-account auditor. The original index.html audit engine and original sprite.json remain unchanged. GitHub requests require a network connection; an optional token stays only in memory.
+Open [github-goldfish-20261008.html](github-goldfish-20261008.html) in a modern browser. The dated browser entry and index.html share the same audit engine and interface, including saved naming corrections added by Codex (GPT-6) on 2026-10-08. Original sprite.json is unchanged. GitHub requests require a network connection; an optional token stays only in memory.
 
 Current Cage artwork is bundled in `art/` and indexed in `sprite-20261008.json`. Private records, tokens, logs and local machine metadata must stay outside Git.
 
-Source version `0.1.0-20261008`, tag `v0.1.0-20261008`. Publication checks are recorded in `docs/publications-20261008.md`; source publication does not establish live hosting.
+Source version `0.2.0-20261008`, immutable tag [v0.2.0-20261008](https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008). Publication checks are recorded in `docs/publications-20261008.md`; source publication does not establish live hosting.

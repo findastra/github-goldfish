@@ -86,6 +86,13 @@ button.secondary { background: var(--panel-2); color: var(--text); border-color:
 button:disabled { opacity: .55; cursor: progress; }
 button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid var(--note); outline-offset: 2px; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.naming { grid-column: 1 / -1; border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.naming h2 { margin-top: 0; }
+.naming-fields { display: grid; gap: 10px; margin: 12px 0; }
+@media (min-width: 720px) { .naming-fields { grid-template-columns: 1fr 1fr 1fr; } }
+.naming-list { padding-left: 20px; overflow-wrap: anywhere; }
+.naming-list li { margin: 8px 0; }
+.naming-list button { margin-left: 10px; padding: 4px 10px; font-size: .85rem; }
 
 /* Summary */
 .tiles { display: grid; gap: 10px; grid-template-columns: repeat(2, 1fr); }
@@ -153,6 +160,18 @@ footer { margin-top: 40px; color: var(--muted); font-size: .85rem; border-top: 1
       <button id="copy" type="button" class="secondary" disabled>Copy report</button>
       <button id="download" type="button" class="secondary" disabled>Download report.md</button>
     </div>
+    <div class="naming" aria-labelledby="naming-title">
+      <h2 id="naming-title">Naming corrections Goldfish remembers</h2>
+      <p class="hint">Teach a correction for one repository. Goldfish checks its description and prose on future audits. Saved only in this browser; nothing is sent to GitHub.</p>
+      <div class="naming-fields">
+        <div><label for="learn-repo">Repository (owner/name)</label><input id="learn-repo" type="text" autocomplete="off" spellcheck="false" placeholder="owner/project"></div>
+        <div><label for="learn-from">Mistaken name</label><input id="learn-from" type="text" autocomplete="off" spellcheck="false"></div>
+        <div><label for="learn-to">Preferred name</label><input id="learn-to" type="text" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <button id="learn-save" type="button" class="secondary">Remember correction</button>
+      <p id="learn-status" class="hint" role="status" aria-live="polite"></p>
+      <ul id="naming-list" class="naming-list"></ul>
+    </div>
   </section>
 
   <section id="results" hidden aria-label="Results">
@@ -168,7 +187,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: .85rem; border-top: 1
   <footer>
     <p><strong>Checks:</strong> Document control (missing or malformed required files, pet files, headings, stray copies and secrets files), Blatant (typos, doubled words, mojibake, placeholders, secrets, broken links and anchors, brand spellings, never-say words), Organizational (names, topics, homepage, stubs, profile list), Systemic (patterns across the whole account: license, apostrophes, dashes, description style, the Cage registry).</p>
     <p><strong>Not checked:</strong> spelling beyond a short typo list and doubled words, external links (browsers cannot test them), issues, pull requests, wikis, releases, gists, commit messages, text inside images, private repos, the contents of live websites.</p>
-    <p>GitHub Goldfish v0.1.0, built 2026-10-07 by Claude Sonnet 5.5 (<code>claude-sonnet-5-5</code>) for Astra. MIT licensed.</p>
+    <p>GitHub Goldfish <a href="https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008">v0.2.0-20261008 source</a>. Built by Claude Sonnet 5.5 (<code>claude-sonnet-5-5</code>), 2026-10-07; naming corrections added by Codex (GPT-6), 2026-10-08. Made for Astra. MIT licensed.</p>
   </footer>
 </main>
 
@@ -200,6 +219,25 @@ const Goldfish = (() => {
     h.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[`*]/g, '').trim().toLowerCase()
      .replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s/g, '-');
   const words = (s) => (s.toLowerCase().match(/[a-z0-9]+/g) || []);
+
+  // Owner-supplied corrections stay outside the public defaults.
+  function normalizeNamingRules(rules = []) {
+    if (!Array.isArray(rules)) throw new Error('Naming corrections must be a JSON array.');
+    const seen = new Map();
+    return rules.map((rule, i) => {
+      const fail = (why) => { throw new Error(`Naming correction ${i + 1}: ${why}`); };
+      if (!rule || typeof rule !== 'object' || Array.isArray(rule)) fail('use repo, from and to fields.');
+      if (['repo', 'from', 'to'].some((key) => typeof rule[key] !== 'string')) fail('repo, from and to must be text.');
+      const clean = { repo: rule.repo.trim().toLowerCase(), from: rule.from.trim(), to: rule.to.trim() };
+      if (!/^[a-z0-9](?:[a-z0-9-]{0,38})\/[a-z0-9_.-]+$/i.test(clean.repo)) fail('repository must be owner/name.');
+      if ([clean.from, clean.to].some((name) => !name || name.length > 200 || /[\u0000-\u001f\u007f]/.test(name))) fail('names must be 1–200 characters on one line.');
+      if (clean.from === clean.to) fail('the mistaken and preferred names must differ.');
+      const key = clean.repo + '\n' + clean.from.toLowerCase();
+      if (seen.has(key) && seen.get(key) !== clean.to) fail('this mistaken name already has a different preferred name in that repository.');
+      seen.set(key, clean.to);
+      return clean;
+    }).filter((rule, i, all) => all.findIndex((other) => other.repo === rule.repo && other.from.toLowerCase() === rule.from.toLowerCase()) === i);
+  }
 
   function headings(md) {
     const out = [];
@@ -299,6 +337,22 @@ const Goldfish = (() => {
     for (const [bad, good, re] of BRANDS) {
       re.lastIndex = 0;
       while ((m = re.exec(p))) add('Blatant', 'warn', `Brand spelled "${bad}"; the usual spelling is "${good}".`, m.index, { evidence: clip(p.slice(Math.max(0, m.index - 25), m.index + 35).replace(/\n/g, ' ')) });
+    }
+
+    // Learned names are repository-scoped prose checks, never URL or code rewrites.
+    const namingText = kind === 'md' ? p : maskUrls(text);
+    for (const rule of ctx.namingRules) {
+      if (rule.repo !== `${ctx.user}/${repo}`.toLowerCase()) continue;
+      const escaped = rule.from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const preferred = rule.to.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const learnedProse = namingText.replace(new RegExp(`(?<![\\p{L}\\p{N}_])${preferred}(?![\\p{L}\\p{N}_])`, 'gu'), blank);
+      const re = new RegExp(`(?<![\\p{L}\\p{N}_])${escaped}(?![\\p{L}\\p{N}_])`, 'giu');
+      while ((m = re.exec(learnedProse))) {
+        add('Organizational', 'warn', `Learned naming correction: use "${rule.to}" instead of "${m[0]}".`, m.index, {
+          evidence: clip(text.slice(Math.max(0, m.index - 25), m.index + m[0].length + 25).replace(/\n/g, ' ')),
+          fix: `Replace this project name with "${rule.to}".`,
+        });
+      }
     }
 
     // secrets (raw text, including code blocks)
@@ -416,6 +470,7 @@ const Goldfish = (() => {
     const { add } = sink;
     const user = model.user;
     const neverSay = (model.neverSay || []).map((s) => s.trim()).filter(Boolean);
+    const namingRules = normalizeNamingRules(model.namingRules);
     const repos = model.repos.filter((r) => !r.fork);
     const repoMap = {};
     for (const r of repos) {
@@ -423,7 +478,7 @@ const Goldfish = (() => {
       r.treeSet = r.tree ? new Set(r.tree.flatMap((p) => { const out = [p]; let d = p; while (d.includes('/')) { d = d.slice(0, d.lastIndexOf('/')); out.push(d); } return out; })) : null;
       repoMap[r.name] = r;
     }
-    const ctx = { user, repoMap, neverSay };
+    const ctx = { user, repoMap, neverSay, namingRules };
     const has = (r, f) => (r.treeSet ? r.treeSet.has(f) : r.files[f] != null);
     const surfaces = []; // for systemic tallies
     const S = (repo, where, text, kind) => { const s = { repo, where, text, kind }; if (text) { surfaces.push(s); textChecks(s, ctx, sink); } return s; };
@@ -703,7 +758,7 @@ const Goldfish = (() => {
     return { user, profile: { name: profile.name, bio: profile.bio, company: profile.company, location: profile.location, blog: profile.blog }, repos, registry, notes };
   }
 
-  return { audit, collect, summarize, toMarkdown, CATS, headings, slugSet, resolvePath };
+  return { audit, collect, summarize, toMarkdown, normalizeNamingRules, CATS, headings, slugSet, resolvePath };
 })();
 if (typeof module !== 'undefined') module.exports = Goldfish;
 </script>
@@ -715,7 +770,7 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const store = {
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
-    set(k, v) { try { localStorage.setItem(k, v); } catch { /* private window: fine */ } },
+    set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
   };
 
   /* ===== The pixel twin: 32x32, nine moods, drawn in the Cage's shared style ===== */
@@ -779,6 +834,29 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
   $('user').value = store.get('goldfish.user') || 'findastra';
   $('never').value = store.get('goldfish.never') || '';
   $('never').addEventListener('change', () => store.set('goldfish.never', $('never').value));
+  let namingRules = [];
+  try { namingRules = Goldfish.normalizeNamingRules(JSON.parse(store.get('goldfish.namingRules') || '[]')); }
+  catch (e) { $('learn-status').textContent = 'Saved corrections could not be loaded: ' + e.message; }
+  const saveNamingRules = () => {
+    const saved = store.set('goldfish.namingRules', JSON.stringify(namingRules));
+    $('learn-status').textContent = saved ? 'Corrections saved in this browser. They apply to the next audit.' : 'Browser storage is unavailable. These corrections apply only until this page closes.';
+  };
+  function renderNamingRules() {
+    $('naming-list').replaceChildren(...namingRules.map((rule, i) => {
+      const remove = E('button', { type: 'button', className: 'secondary', textContent: 'Forget', ariaLabel: `Forget correction for ${rule.from} in ${rule.repo}` });
+      remove.onclick = () => { namingRules.splice(i, 1); saveNamingRules(); renderNamingRules(); };
+      return E('li', {}, E('span', { textContent: `${rule.repo}: ${rule.from} → ${rule.to}` }), remove);
+    }));
+  }
+  $('learn-save').onclick = () => {
+    try {
+      const [rule] = Goldfish.normalizeNamingRules([{ repo: $('learn-repo').value, from: $('learn-from').value, to: $('learn-to').value }]);
+      namingRules = namingRules.filter((old) => old.repo !== rule.repo || old.from.toLowerCase() !== rule.from.toLowerCase());
+      namingRules.push(rule); saveNamingRules(); renderNamingRules();
+      $('learn-from').value = ''; $('learn-to').value = '';
+    } catch (e) { $('learn-status').textContent = e.message; }
+  };
+  renderNamingRules();
 
   function ghUrl(f) {
     const r = meta.repos.find((x) => x.name === f.repo);
@@ -838,7 +916,7 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
         },
       });
       const never = $('never').value.split('\n');
-      findings = Goldfish.audit({ ...data, neverSay: never });
+      findings = Goldfish.audit({ ...data, neverSay: never, namingRules });
       meta = { user, repoCount: data.repos.filter((r) => !r.fork).length, repos: data.repos, notes: data.notes, when: new Date().toISOString().slice(0, 10) };
       const s = Goldfish.summarize(findings);
       setMood(s.mood); fish.tx = W / 2 - 16; fish.ty = 14; redraw();

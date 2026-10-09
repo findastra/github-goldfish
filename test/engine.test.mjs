@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { loadEngine } from '../scripts/load-engine.mjs';
+import { mkdtempSync, writeFileSync, unlinkSync, rmdirSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 const G = loadEngine();
 const repo = (name, over = {}) => ({
@@ -58,6 +63,61 @@ test('personal paths and emails are flagged, placeholders and URLs are not', () 
 test('never-say words are errors, case-insensitive and whole-word; blanks are ignored', () => {
   const fs = run([repo('a', { files: { 'README.md': '# a\n\nBuilt at ACME Corp by Jane Doe, not Janet Doeman.\n' } })], { neverSay: ['Acme Corp', 'Jane Doe', ' '] });
   assert.equal(fs.filter((f) => /never to find/.test(f.msg)).length, 2);
+});
+
+test('learned naming corrections apply only to the configured repository and preserve line numbers', () => {
+  const namingRules = [{ repo: ' ME/BLUE-HALL ', from: 'Blue World', to: 'Blue Hall' }];
+  const fs = run([
+    repo('blue-hall', { description: 'Visit BLUE WORLD.', files: { 'README.md': '# Blue Hall\n\nWelcome to Blue World.\n' } }),
+    repo('other', { description: 'Visit Blue World.' }),
+  ], { namingRules, profile: { bio: 'Blue World' } });
+  const learned = fs.filter((f) => /Learned naming correction/.test(f.msg));
+  assert.equal(learned.length, 2);
+  assert.ok(learned.every((f) => f.repo === 'blue-hall' && f.sev === 'warn' && f.fix.includes('Blue Hall')));
+  assert.equal(learned.find((f) => f.where === 'README.md').line, 3);
+  assert.equal(run([repo('blue-hall', { description: 'Blue World' })], { user: 'another', namingRules }).filter((f) => /Learned naming correction/.test(f.msg)).length, 0);
+});
+
+test('learned names ignore correct names, code, URLs, placeholders, and longer words', () => {
+  const files = { 'README.md': '# Blue Hall\n\nBlue Hall. Blue Worlds. MyBlue World. Blue World_extra.\n\n```\nBlue World\n```\n\n`Blue World` [link](https://example.test/Blue%20World) <Blue World>\n' };
+  const namingRules = [{ repo: 'me/blue-hall', from: 'Blue World', to: 'Blue Hall' }];
+  assert.ok(!has(run([repo('blue-hall', { files, description: '<Blue World> https://example.test/BlueWorld' })], { namingRules }), /Learned naming correction/));
+  assert.ok(!has(run([repo('blue-hall', { description: 'Blue World' })]), /Learned naming correction/));
+  assert.ok(!has(run([repo('blue-hall', { description: 'Blue Hall', files: { 'README.md': '# Blue Hall\n' } })], { namingRules: [{ repo: 'me/blue-hall', from: 'Blue', to: 'Blue Hall' }] }), /Learned naming correction/));
+});
+
+test('learned names are literal text and can correct capitalization without flagging the preferred spelling', () => {
+  const namingRules = [
+    { repo: 'me/blue-hall', from: 'Blue (Old)+', to: 'Blue Hall' },
+    { repo: 'me/blue-hall', from: 'bluehall', to: 'BlueHall' },
+  ];
+  const fs = run([repo('blue-hall', { description: 'Blue (Old)+ Blue Old BlueHall bluehall BLUEHALL' })], { namingRules });
+  assert.equal(fs.filter((f) => /Learned naming correction/.test(f.msg)).length, 3);
+});
+
+test('naming rule validation rejects ambiguous or malformed input before auditing', () => {
+  const rule = { repo: 'me/blue-hall', from: 'Blue World', to: 'Blue Hall' };
+  assert.equal(G.normalizeNamingRules([rule, rule]).length, 1);
+  for (const rules of [null, {}, [null], [{ ...rule, repo: 'blue-hall' }], [{ ...rule, from: '' }], [{ ...rule, to: 'Blue\nHall' }], [{ ...rule, to: rule.from }], [rule, { ...rule, to: 'Other Hall' }]]) {
+    assert.throws(() => run([], { namingRules: rules }), /Naming correction/);
+  }
+});
+
+test('CLI applies private naming rules to an offline snapshot', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'goldfish-test-'));
+  const day = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Denver', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()).replace(/-/g, '');
+  const snapshot = join(dir, `audit-snapshot-${day}.json`);
+  const rules = join(dir, `naming-rules-${day}.json`);
+  try {
+    writeFileSync(snapshot, JSON.stringify({ user: 'me', profile: { bio: 'Hello.' }, repos: [repo('blue-hall', { description: 'Blue World' }), repo('me')], notes: [] }));
+    writeFileSync(rules, '\uFEFF' + JSON.stringify([{ repo: 'me/blue-hall', from: 'Blue World', to: 'Blue Hall' }]));
+    const result = spawnSync(process.execPath, [fileURLToPath(new URL('../scripts/goldfish-cli.mjs', import.meta.url)), '--snapshot', snapshot, '--naming-rules', rules], { encoding: 'utf8' });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /Learned naming correction: use "Blue Hall" instead of "Blue World"/);
+  } finally {
+    for (const file of [snapshot, rules]) { try { unlinkSync(file); } catch (e) { if (e.code !== 'ENOENT') throw e; } }
+    rmdirSync(dir);
+  }
 });
 
 test('link to a repo that does not exist, with reorder hint', () => {
@@ -188,4 +248,11 @@ test('the sprite embedded in index.html matches sprite.json (run scripts/sync-sp
     assert.equal(f.rows.length, 32, mood);
     assert.ok(f.rows.every((r) => r.length === 32), `${mood} is 32 wide`);
   }
+});
+
+test('dated browser entry keeps the canonical engine and UI synchronized', async () => {
+  const { readFileSync } = await import('node:fs');
+  const canonical = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  const dated = readFileSync(new URL('../github-goldfish-20261008.html', import.meta.url), 'utf8');
+  assert.equal(dated, canonical);
 });
