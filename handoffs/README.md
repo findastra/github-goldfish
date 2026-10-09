@@ -6,3 +6,4 @@ Task cards for whichever assistant picks them up. Format and rules: the Cage's
 | Card | For | Status |
 | --- | --- | --- |
 | [001: Profile style checks](001-goldfish-profile-style-checks.md) | goldfish | open |
+| [002: Link first in every repo description](002-goldfish-link-first-descriptions.md) | goldfish | open |
