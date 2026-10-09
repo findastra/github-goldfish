@@ -22,6 +22,7 @@ A single-file browser app (`index.html`) plus a small command-line wrapper. It f
 - Repo and folder names: lowercase words joined by hyphens. README title is the same words in Title Case.
 - Pet words: one name per part of a pet app (pet, app, desktop pet, bubble, quick chat, app icon, pet well). The Goldfish reads the list from `words` in the Cage's `pets.json` and reports old names as notes; [PET-WORDS.md](https://github.com/findastra/astras-pet-apps/blob/main/PET-WORDS.md) explains them. Never hard-code the list here: the Farmer owns it.
 - Every pet repo: `pet.json`, topic `pet-app`, README opening with `*A pet app by Astra.*`, `AGENTS.md`, `CLAUDE.md`, a 32×32 sprite with nine moods, the model and version recorded.
+- Astra's profile README layout (header, socials, `--` separators, numbered pet apps): [docs/profile-style-20261009.md](docs/profile-style-20261009.md). Follow it when suggesting profile fixes; never suggest decoration she did not ask for.
 - Pets live in the Cage: <https://github.com/findastra/astras-pet-apps>. Add or update this pet's row in its `pets.json` and README table when this repo changes status (hatching, growing, grown).
 
 ## Running things
