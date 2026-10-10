@@ -18,7 +18,8 @@
 - When an SVG changes, give it a new dated file name (`<name>-YYYYMMDD-HHMMSS.svg`) and update the README. GitHub caches images, so editing a file in place keeps showing the old one.
 
 ## Repo lists
-- Lowercase section headings: `vr & vrchat`, `pet apps`, `discord`, `web & more`.
+- Section headings as Astra writes them (now `VR & VRChat`, `Astra's Pet Apps`, `Discord`, `Web & More`).
+- The Friendly Farmer's profile round (`astras-pet-apps/scripts/farmer-profile-20261009.mjs`, run daily by `findastra/findastra/.github/workflows/farmer-profile-round.yml`) keeps the lists matched to GitHub. Report a layout problem to the Farmer with a card; do not fight the round.
 - No sparkle dividers between sections.
 - Each repo: ``- [`repo`](https://github.com/findastra/repo) -- description``. The separator is `--`. Never swap in ✧, ✦ or other decoration.
 - Private repos are not linked: ``- `repo` *(private)* -- description``.
