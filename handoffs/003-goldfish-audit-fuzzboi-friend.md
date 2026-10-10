@@ -14,10 +14,11 @@ node scripts/goldfish-cli.mjs findastra --md > audit-20261009-fuzzboi.md
 ```
 
 1. **Pet files** in `fuzzboi-friend`: `pet.json`, topic `pet-app`, README opening with
-   `*A pet app by Astra.*`, `AGENTS.md`, `CLAUDE.md`, LICENSE, model and version. Its sprite is
-   `waiting for art` on purpose (Cage card 006): report that as a note, not an error.
-2. **Registry:** it will be missing from the Cage's pets.json until card 006 is done. The Cage
-   also still lists Fuzzbois as "Local art project, not published", which is now wrong.
+   `*A pet app by Astra.*`, `AGENTS.md`, `CLAUDE.md`, LICENSE, model and version. Its sprite has nine
+   draft mood frames in `art/` (generated 2026-10-09); draft until Astra approves them.
+2. **Registry:** it is missing from the Cage's pets.json until Astra applies the patch in
+   `fuzzboi-friend/cage/` (Cage card 006); that patch also fixes the stale Fuzzbois line. Expected,
+   not a new problem. Audit of 2026-10-09 already flags it.
 3. **Link first** (card 002): both descriptions already start with their website link and match
    the Website field. Use them as the "does fire correctly / does not fire" examples.
 4. **Profile:** Astra's profile README (`findastra/findastra`) lists pet apps as a numbered
