@@ -13,7 +13,7 @@
     "repository": "https://github.com/findastra/astras-pet-apps"
   },
   "version": "0.2.0-20261008",
-  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface and naming corrections prepared with Codex (GPT-6), 2026-10-08; private-repo support added with Claude Opus 5.5 (claude-opus-5-5), 2026-10-09",
+  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface and naming corrections prepared with Codex (GPT-6), 2026-10-08; private-repo support added with Claude Opus 5.5 (claude-opus-5-5), 2026-10-09; OpenAI Codex (GPT-6), 2026-10-11",
   "preview": "github-goldfish-20261008.html",
   "source": "https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008",
   "release_tag": "v0.2.0-20261008",

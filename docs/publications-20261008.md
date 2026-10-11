@@ -51,3 +51,5 @@ Remote source/tag/release verification remains to be recorded after pushing. No 
 - Hosted deployment: not performed. Repository and release remain private, accessible to collaborators.
 
 This receipt is a later documentation-only commit; it does not change or move the source tag.
+
+Desktop art follow-up (2026-10-11): Fins partly transparent. Source frames and runtime handoff are recorded in desktop-pet-20261011.json. Prepared by OpenAI Codex (GPT-6), 2026-10-11.
