@@ -176,7 +176,7 @@ test('organizational: stub not archived, branch, naming, profile blurb mismatch'
     repo('me', { files: { 'README.md': '## hi\n\n- [`role-fairy`](https://github.com/me/role-fairy) -- a bot for managing server roles\n' } }),
   ]);
   assert.ok(has(fs, /"Moved:" stub/, 'Old_Name'));
-  assert.ok(!has(fs, /not "main"/, 'Old_Name')); 
+  assert.ok(!has(fs, /not "main"/, 'Old_Name'));
   assert.ok(has(fs, /lowercase words/, 'Old_Name'));
   assert.ok(has(fs, /say different things/, 'me'));
 });
