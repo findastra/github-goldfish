@@ -41,3 +41,9 @@ The chat is missing, not unwanted. Separate pet chats/seats share maintained UI 
 Engine regression tests cover malformed and valid tool metadata, planned and implemented release metadata, overlapping searches, all-disabled filtering, unread README vs absence, token coverage notes and truncated link/entry paths. Browser entries remain byte-identical. Live page still shows old deployment; no claim of revised visual acceptance.
 
 Local browser follow-up: ten compact cards were visually inspected. ON and Sick changed independently and persisted through reload; test state restored. No full live GitHub scan or production deployment was performed.
+
+## Expandable tool bubbles — 2026-10-14
+
+Owner approved the original named tools as the top level. The ten error searches are expansions under github-auditor. Collapsed cards retain separate left-side ON/Sick controls. Native details/summary opens descriptions, version, actions and nested tools. Settings are collapsed, and opening a settings tool reveals its settings. Aquarium now sits near the top with a pink frame, blue water, sunset and soft reflection, castle, pearl shell and scene-only glints. Desktop pet art is untouched. Source tests and local UI verification required; public deployment remains separate.
+
+Owner refinement: restored the original handheld tank shape with pink casing and light blue water/page. Name-only rounded bubbles expand all controls inside; Goldfish is a right-side gold coin. Cyber Deck now accepts typed messages through the same host sampling bridge as Chip; standalone pages report disconnected and do not send. No independent backend or tool execution is added.
