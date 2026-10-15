@@ -65,7 +65,7 @@ GitHub allows 60 anonymous requests an hour per network address. One audit of 12
 |---|---|
 | `index.html` | The whole app: the tank, the audit engine, the report. One file, no dependencies. |
 | `sprite.json` | The 32×32 pixel twin in nine moods (idle, blink, happy, curious, worried, sad, sick, alarmed, sleep). The art is drawn in the Cage repo; after copying new frames here run `node scripts/sync-sprite.mjs`. |
-| `pet.json` | Pet card for the Cage ([findastra-pet-apps](https://github.com/findastra/findastra-pet-apps)). |
+| `pet.json` | Pet card for the Cage, Astra's Pet Apps ([astras-pet-apps](https://github.com/findastra/astras-pet-apps)). |
 | `scripts/` | Command-line audit, the loader that lifts the engine out of `index.html`, the sprite sync. |
 | `test/` | Engine tests. |
 | `AGENTS.md`, `CLAUDE.md` | Rules for any assistant that picks this up. |
