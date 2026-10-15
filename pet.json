@@ -12,15 +12,87 @@
     "home": "README.md",
     "repository": "https://github.com/findastra/astras-pet-apps"
   },
-  "version": "0.2.0-20261008",
-  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface and naming corrections prepared with Codex (GPT-6), 2026-10-08; private-repo support added with Claude Opus 5.5 (claude-opus-5-5), 2026-10-09; OpenAI Codex (GPT-6), 2026-10-11",
+  "version": "1.0.0-draft-20261014",
+  "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface and naming corrections prepared with Codex (GPT-6), 2026-10-08; private-repo support added with Claude Opus 5.5 (claude-opus-5-5), 2026-10-09; OpenAI Codex (GPT-6), 2026-10-11; Flash Audit repairs by OpenAI Codex (GPT-6), 2026-10-14",
   "preview": "github-goldfish-20261008.html",
-  "source": "https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008",
+  "source": "https://github.com/findastra/github-goldfish/tree/codex/flash-audit-20261014",
   "release_tag": "v0.2.0-20261008",
-  "publication_status": "source-release-verified; local-browser-verified; see docs/publications-20261008.md",
+  "publication_status": "branch-source; revised-browser-validation-pending; not-deployed",
   "visibility": "private",
   "implementation_status": "The canonical and dated browser entries share the auditor (public repos always; private repos too when the token belongs to the audited account) and explicit repo-scoped naming corrections. Rules stay in browser storage or a private CLI file; tokens stay only in memory. Private snapshots can be audited locally. There is no automatic learning or background monitoring. Original sprite.json is unchanged.",
-  "updated": "2026-10-09",
+  "updated": "2026-10-14",
   "desktop_pet": "desktop-pet-20261011.json",
-  "desktop_art_built_with": "OpenAI Codex (GPT-6), built-in imagegen and native renderer, 2026-10-11"
+  "desktop_art_built_with": "OpenAI Codex (GPT-6), built-in imagegen and native renderer, 2026-10-11",
+  "program": "GitHub Aquarium",
+  "framework": "PET-PROGRAM-FRAMEWORK.md (2026-10-14; partial implementation)",
+  "audit": {
+    "cadence": "weekly",
+    "subject": "GitHub repositories and Pet Program conformance",
+    "needs": "owner-approved account access when private repositories are included"
+  },
+  "tools": [
+    {
+      "name": "github-auditor",
+      "version": "1.0",
+      "group": "tools",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Inspect authorized repositories"
+    },
+    {
+      "name": "naming-corrections",
+      "version": "1.0",
+      "group": "tools",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Apply owner-supplied naming rules"
+    },
+    {
+      "name": "never-say-checker",
+      "version": "1.0",
+      "group": "tools",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Check owner-supplied prohibited words"
+    },
+    {
+      "name": "report-exporter",
+      "version": "1.0",
+      "group": "tools",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Export audit findings"
+    },
+    {
+      "name": "flash-audit",
+      "version": "1.0",
+      "group": "tools",
+      "status": "planned",
+      "visibility": "private",
+      "intended_use": "Review pet conformance using Flash Audit"
+    },
+    {
+      "name": "play-with-github-goldfish",
+      "version": "1.0",
+      "group": "tutorials",
+      "status": "planned",
+      "visibility": "private",
+      "intended_use": "Learn to use GitHub Aquarium in L3 chat"
+    },
+    {
+      "name": "care-for-github-goldfish",
+      "version": "1.0",
+      "group": "tutorials",
+      "status": "planned",
+      "visibility": "private",
+      "intended_use": "Learn to maintain GitHub Aquarium in L3 chat"
+    }
+  ],
+  "framework_limitations": [
+    "L3 provider not connected",
+    "Farmer defect delivery not connected",
+    "tool OFF is local execution control, not protected-core enforcement",
+    "tutorials require L3 connection",
+    "no signed release or OS isolation"
+  ]
 }

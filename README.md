@@ -114,3 +114,6 @@ Current Cage artwork is bundled in `art/` and indexed in `sprite-20261008.json`.
 Source version `0.2.0-20261008`, immutable tag [v0.2.0-20261008](https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008). Publication checks are recorded in `docs/publications-20261008.md`; source publication does not establish live hosting.
 
 Desktop appearance draft updated 2026-10-11: see [desktop details](desktop-pet-20261011.json). This changes the desktop pet, not application features.
+
+
+Flash Audit revision, OpenAI Codex (GPT-6), 2026-10-14: the program name is GitHub Aquarium; current hub is findastra/astras-pet-os. The Cage is retired. Approved art takes precedence over the legacy 32px wording above. Source work is on codex/flash-audit-20261014, not a deployed release. See docs/flash-audit-repairs-20261014.md for tools, tests and remaining integration work.

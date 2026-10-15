@@ -45,3 +45,6 @@ Private-repo update: Claude Opus 5.5 (`claude-opus-5-5`), 2026-10-09. The collec
 Pet-words update: Claude Opus 5.5 (`claude-opus-5-5`), 2026-10-09. The Cage repo is `astras-pet-apps` (it was `findastra-pet-apps`, so the registry was being skipped). The engine reads `words` from the Cage's pets.json and flags retired part names in pet repos as Organizational notes, longest phrase first, never in code, URLs or PET-WORDS.md itself. The profile list can also be a numbered running list. index.html and github-goldfish-20261008.html are synchronized; sprite.json is unchanged.
 
 Desktop appearance revision by OpenAI Codex (GPT-6), 2026-10-11. See desktop-pet-20261011.json; runtime behavior is in astras-pet-apps.
+
+
+Flash Audit revision, OpenAI Codex (GPT-6), 2026-10-14: the program name is GitHub Aquarium; current hub is findastra/astras-pet-os. The Cage is retired. Approved art takes precedence over the legacy 32px wording above. Source work is on codex/flash-audit-20261014, not a deployed release. See docs/flash-audit-repairs-20261014.md for tools, tests and remaining integration work.
