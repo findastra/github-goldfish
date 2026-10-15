@@ -39,3 +39,5 @@ The chat is missing, not unwanted. Separate pet chats/seats share maintained UI 
 ## Validation
 
 Engine regression tests cover malformed and valid tool metadata, planned and implemented release metadata, overlapping searches, all-disabled filtering, unread README vs absence, token coverage notes and truncated link/entry paths. Browser entries remain byte-identical. Live page still shows old deployment; no claim of revised visual acceptance.
+
+Local browser follow-up: ten compact cards were visually inspected. ON and Sick changed independently and persisted through reload; test state restored. No full live GitHub scan or production deployment was performed.
