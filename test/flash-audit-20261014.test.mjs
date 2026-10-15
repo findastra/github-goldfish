@@ -44,6 +44,6 @@ test('pipeline admission is not incorrectly reported as absent',()=>{
 });
 test('all embedded scripts parse and browser entries match',()=>{
  const html=readFileSync(new URL('../index.html',import.meta.url),'utf8');
- for(const [,script] of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)) new vm.Script(script);
+ for(const [,attrs,script] of html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/g)){if(/type=["']application\/json["']/.test(attrs))JSON.parse(script);else new vm.Script(script);}
  assert.equal(html,readFileSync(new URL('../github-goldfish-20261008.html',import.meta.url),'utf8'));
 });

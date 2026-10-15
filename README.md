@@ -119,3 +119,18 @@ Desktop appearance draft updated 2026-10-11: see [desktop details](desktop-pet-2
 Flash Audit revision, OpenAI Codex (GPT-6), 2026-10-14: the program name is GitHub Aquarium; current hub is findastra/astras-pet-os. The Cage is retired. Approved art takes precedence over the legacy 32px wording above. Source work is on codex/flash-audit-20261014, not a deployed release. See docs/flash-audit-repairs-20261014.md for tools, tests and remaining integration work.
 
 Error-search expansion (2026-10-14): ten overlapping, individually selectable error searches with compact ON/Sick controls. See [error searches and proposed extensions](docs/error-searches-20261014.md). Source branch only; live verification and deployment remain pending.
+
+
+## Local Flash Audit preflight (2026-10-15)
+
+Run `node scripts/flash-audit-local-20261015.mjs <repository-folder>` to inspect one
+existing local Pet Program. This reads only required metadata and declared local
+entry/sprite targets. It never runs the target's code, makes network requests, or
+reads credentials. Paths escaping the selected folder are rejected. JSON results
+separate Missing, Incorrect, Pass for narrow file/metadata checks, and Not verified
+for runtime, signing, account, security and visual checks. Keep reports private when
+the inspected repository or its metadata is private.
+
+The browser uses the original yellow phone and paired status lamps; tutorials and
+notes share a responsive row. No L3 connection or protected-core OFF is implied.
+Local metadata preflight is a first slice of Flash Audit, not an automated certification.

@@ -15,12 +15,12 @@
   "version": "1.0.0-draft-20261014",
   "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface and naming corrections prepared with Codex (GPT-6), 2026-10-08; private-repo support added with Claude Opus 5.5 (claude-opus-5-5), 2026-10-09; OpenAI Codex (GPT-6), 2026-10-11; Flash Audit repairs by OpenAI Codex (GPT-6), 2026-10-14",
   "preview": "github-goldfish-20261008.html",
-  "source": "https://github.com/findastra/github-goldfish/tree/codex/flash-audit-20261014",
+  "source": "https://github.com/findastra/github-goldfish/tree/codex/yellow-phone-20261015",
   "release_tag": "v0.2.0-20261008",
   "publication_status": "branch-source; revised-browser-validation-pending; not-deployed",
   "visibility": "private",
   "implementation_status": "The canonical and dated browser entries share the auditor (public repos always; private repos too when the token belongs to the audited account) and explicit repo-scoped naming corrections. Rules stay in browser storage or a private CLI file; tokens stay only in memory. Private snapshots can be audited locally. There is no automatic learning or background monitoring. Original sprite.json is unchanged.",
-  "updated": "2026-10-14",
+  "updated": "2026-10-15",
   "desktop_pet": "desktop-pet-20261011.json",
   "desktop_art_built_with": "OpenAI Codex (GPT-6), built-in imagegen and native renderer, 2026-10-11",
   "program": "GitHub Aquarium",
@@ -147,9 +147,9 @@
       "name": "flash-audit",
       "version": "1.0",
       "group": "tools",
-      "status": "planned",
+      "status": "partial-implementation",
       "visibility": "private",
-      "intended_use": "Review pet conformance using Flash Audit"
+      "intended_use": "Manual audit instructions and read-only local metadata preflight; runtime and visual acceptance require evidence"
     },
     {
       "name": "play-with-github-goldfish",
