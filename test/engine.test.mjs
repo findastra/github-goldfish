@@ -163,7 +163,7 @@ test('pet app rules', () => {
 });
 
 test('a well-formed pet app passes the pet checks', () => {
-  const petJson = JSON.stringify({ pet: 'Fish', kind: 'pet-app', owner: 'Astra', sprite: 'sprite.json', job: 'j', runs_on: 'browser', entry: 'index.html', status: 'hatching', cage: { topic: 'pet-app', home: 'README.md' }, built_with: 'Claude Sonnet 5.5' });
+  const petJson = JSON.stringify({ pet: 'Fish', version:'1.0', kind: 'pet-app', owner: 'Astra', sprite: 'sprite.json', job: 'j', runs_on: 'browser', entry: 'index.html', status: 'hatching', cage: { topic: 'pet-app', home: 'README.md' }, built_with: 'Claude Sonnet 5.5' });
   const md = '# Fishy\n\n*A pet app by Astra.*\n\n## Run it\n\nOpen it.\n\n## Limits\n\nNone.\n';
   const fs = run([repo('fishy', { topics: ['pet-app'], files: { 'README.md': md, 'pet.json': petJson, 'AGENTS.md': '# A\nBuilt with Claude Sonnet 5.5.\n', 'CLAUDE.md': '# C\n' }, tree: ['README.md', 'pet.json', 'index.html', 'sprite.json', 'AGENTS.md', 'CLAUDE.md'] })]);
   assert.equal(fs.filter((f) => f.repo === 'fishy' && f.sev !== 'note').length, 0, JSON.stringify(fs, null, 1));
@@ -438,4 +438,49 @@ test('the profile list can be numbered (a running list) as well as bulleted', ()
   const prof = repo('me', { files: { 'README.md': '1. [`aa`](https://github.com/me/aa) -- A plain sentence.\n' } });
   const fs = run([prof, repo('aa')]);
   assert.ok(!has(fs, /does not list aa/));
+});
+
+test('tool-definition search detects malformed, duplicate and unversioned tools without firing on valid definitions',()=>{
+ const pet=tools=>({kind:'pet-app',pet:'Sample',status:'seed',tools});
+ const scan=tools=>run([repo('sample',{files:{'pet.json':JSON.stringify(pet(tools))}})],{enabledErrorTools:['tool-definition-error']});
+ assert.ok(scan('invalid').some(f=>/must be an array/.test(f.msg)));
+ assert.ok(scan([{name:'a',version:'1'},{name:'a'}]).some(f=>/Duplicate/.test(f.msg)));
+ assert.ok(scan([{name:'a'}]).some(f=>/no version/.test(f.msg)));
+ assert.ok(scan([null]).some(f=>/valid name/.test(f.msg)));
+ assert.equal(scan([{name:'a',version:'1'}]).length,0);
+});
+test('release-metadata search distinguishes planned pets, valid releases and declaration drift',()=>{
+ const scan=pet=>run([repo('sample',{files:{'pet.json':JSON.stringify(pet)}})],{enabledErrorTools:['release-metadata-error']});
+ assert.equal(scan({status:'seed'}).length,0);
+ assert.equal(scan({status:'grown',version:'1.0',release_tag:'v1.0'}).length,0);
+ assert.ok(scan({status:'grown'}).some(f=>/no declared/.test(f.msg)));
+ assert.ok(scan({status:'grown',version:'2.0',release_tag:'v1.0'}).some(f=>f.sev==='note'));
+});
+test('coverage distinguishes unread README from confirmed absence',()=>{
+ const scan=r=>run([repo('sample',r)]);
+ for(const tree of [null,['README.md']]){
+  const f=scan({files:{},tree});assert.ok(has(f,/not inspected/));assert.equal(has(f,/No README.md/),false);
+ }
+ assert.ok(has(scan({files:{},tree:[]}),/No README.md/));
+ assert.equal(has(scan({files:{'README.md':'# Sample'},tree:['README.md']}),/not inspected/),false);
+ assert.ok(run([],{notes:['Read failed'],enabledErrorTools:['scan-coverage-error']}).some(f=>f.msg==='Read failed'));
+});
+test('overlapping error searches keep unique findings and respect disabled searches',()=>{
+ const repos=[repo('sample',{files:{'pet.json':JSON.stringify({status:'grown'})}})];
+ const only=run(repos,{enabledErrorTools:['release-metadata-error']});
+ assert.ok(only.length);assert.ok(only.every(f=>f.tools.includes('release-metadata-error')));
+ assert.equal(run(repos,{enabledErrorTools:[]}).length,0);
+ const overlap=run(repos,{enabledErrorTools:['release-metadata-error','pet-metadata-error']});
+ assert.equal(overlap.filter(f=>/no declared program version/.test(f.msg)).length,1);
+});
+
+test('collector credential notes and unrelated filenames do not imply secret exposure',()=>{
+ assert.equal(run([],{notes:['The token showed no private repos.'],enabledErrorTools:['secret-exposure-error']}).length,0);
+ const f=run([repo('sample',{files:{'token-notes.md':'# Text\n\nThis is is fine.'}})],{enabledErrorTools:['secret-exposure-error']});
+ assert.equal(f.length,0);
+});
+test('truncated trees do not prove linked or pet entry files are missing',()=>{
+ const r=repo('sample',{tree:['README.md','pet.json'],treeTruncated:true,files:{'README.md':'# Sample\n\n[Manual](docs/manual.md)\n[File](https://github.com/me/sample/blob/main/missing.txt)', 'pet.json':JSON.stringify({status:'grown',sprite:'sprite.json',entry:'index.html'})}});
+ const f=run([r]);assert.equal(f.filter(x=>/not in|target is missing|No AGENTS|No CLAUDE/.test(x.msg)).length,0);
+ assert.ok(f.some(x=>x.tools.includes('scan-coverage-error')));
 });

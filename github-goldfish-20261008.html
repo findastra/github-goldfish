@@ -475,7 +475,7 @@ const Goldfish = (() => {
         continue;
       }
       if (target.name !== name) sink.add('Document control', 'warn', repo, where, `Repo name case differs: link says "${name}", repo is "${target.name}".`, { line });
-      if (kind && target.tree && branch === target.default_branch && file) {
+      if (kind && target.tree && !target.treeTruncated && branch === target.default_branch && file) {
         const f = decodeURIComponent(file).replace(/\/$/, '');
         if (!target.treeSet.has(f)) sink.add('Blatant', 'error', repo, where, `Link points at a file that is not in ${target.name}: ${f}`, { line, evidence: full, fix: 'Fix the path, or add the file.' });
       }
@@ -493,7 +493,7 @@ const Goldfish = (() => {
       if (!slugs.has(a)) sink.add('Blatant', 'warn', repo, where, `Anchor link #${m[1]} matches no heading in this file.`, { line: lineOf(text, m.index) });
     }
     // relative links
-    if (!paths) return;
+    if (!paths || mine.treeTruncated) return;
     const rel = /(?:\]\(|\b(?:src|href)=")(?!https?:|mailto:|#|data:|\/\/)([^)"\s#?]+)/g;
     while ((m = rel.exec(q))) {
       const target = resolvePath(path, decodeURIComponent(m[1]));
@@ -504,6 +504,31 @@ const Goldfish = (() => {
   }
 
   /* ---------- the audit ---------- */
+
+  const ERROR_TOOLS = [
+    ['document-control-error','Required documents, headings and uncontrolled copies.'],
+    ['blatant-error','Typos, placeholders, encoding and prohibited text.'],
+    ['organizational-error','Names, topics, descriptions and organization.'],
+    ['systemic-error','Account-wide consistency and registry problems.'],
+    ['link-error','Repository paths, anchors and known GitHub links; no live external-site probes.'],
+    ['secret-exposure-error','Recognizable secret patterns and sensitive filenames; not a full security scan.'],
+    ['pet-metadata-error','Pet identity, required metadata and declared entry paths.'],
+    ['tool-definition-error','Malformed tool lists, duplicate tool names and missing versions.'],
+    ['release-metadata-error','Missing or inconsistent declared release versions; no deployed-release verification.'],
+    ['scan-coverage-error','Unreadable files, incomplete trees and collector limitations.']
+  ];
+  function errorTools(f) {
+    const ids=[{'Document control':'document-control-error',Blatant:'blatant-error',Organizational:'organizational-error',Systemic:'systemic-error'}[f.cat]];
+    const text=f.msg;
+    if(/link|anchor|homepage|website/i.test(text))ids.push('link-error');
+    if(f.rule!=='scan-coverage' && /^(Looks like a secret:|A secrets-type file|A personal |An email address |Link to a private repo:)/i.test(text))ids.push('secret-exposure-error');
+    if(f.where==='pet.json')ids.push('pet-metadata-error');
+    if(f.rule==='tool-definition')ids.push('tool-definition-error');
+    if(f.rule==='release-metadata')ids.push('release-metadata-error');
+    if(f.rule==='scan-coverage'||/partial|truncated|unreadable/i.test(text))ids.push('scan-coverage-error');
+    return [...new Set(ids.filter(Boolean))];
+  }
+
   function audit(model) {
     const sink = makeSink();
     const { add } = sink;
@@ -522,6 +547,7 @@ const Goldfish = (() => {
     const surfaces = []; // for systemic tallies
     const S = (repo, where, text, kind) => { const s = { repo, where, text, kind }; if (text) { surfaces.push(s); textChecks(s, ctx, sink); } return s; };
 
+    for(const note of model.notes||[]) add('Systemic','note','(scan)','coverage',note,{rule:'scan-coverage'});
     /* profile */
     const prof = model.profile || {};
     for (const [k, v] of [['name', prof.name], ['bio', prof.bio], ['company', prof.company], ['location', prof.location]]) S('(profile)', `profile ${k}`, v, 'plain');
@@ -559,10 +585,29 @@ const Goldfish = (() => {
         if (pet) { const strs = []; (function walk(v) { if (typeof v === 'string') strs.push(v); else if (v && typeof v === 'object') Object.values(v).forEach(walk); })(pet); petWordChecks(name, 'pet.json', strs.join('\n'), 'plain', ctx, sink); }
       }
 
+      if(pet && typeof pet==='object' && !Array.isArray(pet)) {
+        const issue=(msg,rule)=>add('Document control','warn',name,'pet.json',msg,{rule});
+        if(pet.tools!=null && !Array.isArray(pet.tools))issue('Tool list must be an array.','tool-definition');
+        if(Array.isArray(pet.tools)) {
+          const seen=new Set();
+          for(const tool of pet.tools) {
+            if(!tool || typeof tool!=='object' || typeof tool.name!=='string' || !tool.name.trim()) {issue('Tool definition has no valid name.','tool-definition');continue;}
+            if(seen.has(tool.name))issue('Duplicate tool name: '+tool.name+'.','tool-definition');
+            seen.add(tool.name);
+            if(typeof tool.version!=='string'||!tool.version.trim())issue('Tool '+tool.name+' has no version.','tool-definition');
+          }
+        }
+        if(!['seed','roadmap'].includes(pet.status)) {
+          if(typeof pet.version!=='string'||!pet.version.trim())issue('Implemented pet has no declared program version.','release-metadata');
+          if(typeof pet.version==='string' && typeof pet.release_tag==='string' && pet.release_tag.replace(/^v/,'')!==pet.version)
+            add('Document control','note',name,'pet.json','Declared version and release_tag differ; verify whether the tag intentionally names an older release.',{rule:'release-metadata'});
+        }
+      }
       /* ---- Document control ---- */
       const readme = r.files['README.md'];
       if (readme == null) {
-        add('Document control', 'error', name, 'README.md', 'No README.md. Visitors see an empty page.', { fix: 'Add a README that says what it is, how to run it, and its limits.' });
+        if (!r.tree || r.treeTruncated || r.treeSet.has('README.md')) add('Systemic','note',name,'README.md','README contents were not inspected; absence is not confirmed.',{rule:'scan-coverage'});
+        else add('Document control', 'error', name, 'README.md', 'No README.md. Visitors see an empty page.', { fix: 'Add a README that says what it is, how to run it, and its limits.' });
       } else {
         const hs = headings(readme);
         const h1s = hs.filter((h) => h.level === 1);
@@ -584,7 +629,7 @@ const Goldfish = (() => {
         if (r.private) add('Document control', 'note', name, 'LICENSE', `${why} Fine while the repo is private; add one before publishing it.`, { fix });
         else add('Document control', 'warn', name, 'LICENSE', why, { fix });
       }
-      for (const f of ['AGENTS.md', 'CLAUDE.md']) if (isPet && !has(r, f)) add('Document control', 'warn', name, f, `No ${f}, so an assistant picking this up has no rules to follow.`);
+      for (const f of ['AGENTS.md', 'CLAUDE.md']) if (isPet && r.tree && !r.treeTruncated && !has(r, f)) add('Document control', 'warn', name, f, `No ${f}, so an assistant picking this up has no rules to follow.`);
       if (!r.description) add('Document control', 'error', name, 'repo description', 'The repo has no description.', { fix: 'Add one plain sentence.' });
       else if (r.description.length > 300) add('Document control', 'note', name, 'repo description', `The description is ${r.description.length} characters; GitHub cards cut it short.`);
       if (!r.default_branch) add('Organizational', 'warn', name, 'default branch', 'The default branch could not be determined.', { fix: 'Verify the configured default branch before checking its files.' });
@@ -597,10 +642,11 @@ const Goldfish = (() => {
         if (r.treeTruncated) add('Systemic', 'note', name, 'file list', 'The repo is large; GitHub truncated its file list, so file checks are partial.');
       }
 
+      if(!r.tree || (has(r,'pet.json') && r.files['pet.json']==null)) add('Systemic','note',name,'file coverage','File metadata or pet.json could not be fully inspected; missing-file conclusions are withheld.',{rule:'scan-coverage'});
       /* ---- Pet files ---- */
       if (isPet) {
         if (!topics.includes('pet-app')) add('Document control', 'error', name, 'topics', 'Has pet.json but not the GitHub topic "pet-app", so discovery by topic cannot find it.', { fix: 'Repo page, gear next to About, add topic pet-app.' });
-        if (!hasPetJson) add('Document control', 'error', name, 'pet.json', 'Tagged pet-app but has no pet.json.', { fix: `Add pet.json (see ${HUB}/PET-FILES.md).` });
+        if (!hasPetJson && r.tree && !r.treeTruncated && !r.treeSet.has('pet.json')) add('Document control', 'error', name, 'pet.json', 'Tagged pet-app but has no pet.json.', { fix: `Add pet.json (see ${HUB}/PET-FILES.md).` });
         if (pet) {
           const planned = ['seed', 'roadmap'].includes(pet.status);
           for (const k of PET_KEYS.filter(k => !planned || !['sprite','runs_on','entry'].includes(k))) if (pet[k] == null || pet[k] === '') add('Document control', 'error', name, 'pet.json', `pet.json is missing "${k}".`);
@@ -608,7 +654,7 @@ const Goldfish = (() => {
           if (pet.owner != null && pet.owner !== 'Astra') add('Document control', 'error', name, 'pet.json', `"owner" should be "Astra" (public credit), not "${pet.owner}".`);
           if (pet.status && !PET_STATUS.includes(pet.status)) add('Document control', 'error', name, 'pet.json', `"status" should be seed, roadmap, hatching, growing or grown, not "${pet.status}".`);
           if (pet.cage && (pet.cage.topic !== 'pet-app' || !pet.cage.home)) add('Document control', 'error', name, 'pet.json', '"cage" should be {"topic":"pet-app","home":"README.md"}.');
-          if (r.treeSet) {
+          if (r.treeSet && !r.treeTruncated) {
             for (const k of ['sprite', 'entry']) if (typeof pet[k] === 'string' && /^[\w./-]+\.\w+$/.test(pet[k]) && !r.treeSet.has(pet[k])) add('Document control', 'error', name, 'pet.json', `"${k}" points at ${pet[k]}, which is not in the repo.`);
             if (pet.cage && pet.cage.home && !/^https?:\/\//i.test(pet.cage.home) && !r.treeSet.has(pet.cage.home)) add('Document control', 'error', name, 'pet.json', `"cage.home" points at ${pet.cage.home}, which is not in the repo.`);
           }
@@ -718,7 +764,8 @@ const Goldfish = (() => {
 
     sink.list.forEach((f, i) => { f.n = i; });
     sink.list.sort((a, b) => SEV_ORDER[a.sev] - SEV_ORDER[b.sev] || CATS.indexOf(a.cat) - CATS.indexOf(b.cat) || a.n - b.n);
-    return sink.list;
+    for(const f of sink.list) f.tools=errorTools(f);
+    return sink.list.filter(f=>!Array.isArray(model.enabledErrorTools)||f.tools.some(id=>model.enabledErrorTools.includes(id)));
   }
 
   function summarize(findings) {
@@ -867,7 +914,7 @@ const Goldfish = (() => {
     return { user, scope, profile: { name: profile.name, bio: profile.bio, company: profile.company, location: profile.location, blog: profile.blog }, repos, registry, notes };
   }
 
-  return { audit, collect, summarize, toMarkdown, describeScope, normalizeNamingRules, petWords, CATS, headings, slugSet, resolvePath };
+  return { audit, collect, summarize, toMarkdown, describeScope, normalizeNamingRules, petWords, CATS, ERROR_TOOLS, errorTools, headings, slugSet, resolvePath };
 })();
 if (typeof module !== 'undefined') module.exports = Goldfish;
 </script>
@@ -982,20 +1029,20 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
     $('sevline').replaceChildren(E('strong', { textContent: `${s.by.error} errors` }), `, ${s.by.warn} warnings, ${s.by.note} notes across ${Goldfish.describeScope(meta)}.`);
     const f = $('filters'); f.replaceChildren();
     const chip = (label, pressed, on) => { const b = E('button', { type: 'button', className: 'chip', textContent: label }); b.setAttribute('aria-pressed', pressed); b.onclick = on; return b; };
-    ['All', ...Goldfish.CATS].forEach((c) => f.append(chip(c, c === catFilter, () => { catFilter = c; render(); })));
+    ['All', ...Goldfish.CATS, ...Goldfish.ERROR_TOOLS.map(([id])=>id)].forEach((c) => f.append(chip(c+(c.endsWith('-error')?' ('+findings.filter(f=>f.tools?.includes(c)).length+')':''), c === catFilter, () => { catFilter = c; render(); })));
     f.append(chip('Show notes', showNotes, () => { showNotes = !showNotes; render(); }));
-    const shown = findings.filter((x) => (catFilter === 'All' || x.cat === catFilter) && (showNotes || x.sev !== 'note'));
+    const shown = findings.filter((x) => (catFilter === 'All' || x.cat === catFilter || x.tools?.includes(catFilter)) && (showNotes || x.sev !== 'note'));
     const groups = new Map(); shown.forEach((x) => { if (!groups.has(x.repo)) groups.set(x.repo, []); groups.get(x.repo).push(x); });
     const order = [...groups.keys()].sort((a, b) => (a.startsWith('(') ? -1 : 0) - (b.startsWith('(') ? -1 : 0) || groups.get(b).filter((x) => x.sev === 'error').length - groups.get(a).filter((x) => x.sev === 'error').length || a.localeCompare(b));
     const host = $('repos'); host.replaceChildren();
-    if (!shown.length) host.append(E('p', { className: 'empty', textContent: 'Nothing to flag here. The goldfish is happy.' }));
+    if (!shown.length) host.append(E('p', { className: 'empty', textContent: 'No findings in this view. Disabled searches and uninspected data are not a clean bill of health.' }));
     for (const repo of order) {
       const items = groups.get(repo);
       const ul = E('ul');
       for (const x of items) {
         const url = ghUrl(x);
         const where = url ? E('a', { className: 'where mono', href: url, target: '_blank', rel: 'noopener', textContent: x.where + (x.line ? ':' + x.line : '') }) : E('span', { className: 'where mono', textContent: x.where + (x.line ? ':' + x.line : '') });
-        const li = E('li', { className: 'finding' }, E('div', { className: 'top' }, E('span', { className: 'badge ' + x.sev, textContent: x.sev }), E('span', { className: 'cat', textContent: x.cat }), where), E('p', { className: 'msg', textContent: x.msg }));
+        const li = E('li', { className: 'finding' }, E('div', { className: 'top' }, E('span', { className: 'badge ' + x.sev, textContent: x.sev }), E('span', { className: 'cat', textContent: (x.tools||[x.cat]).join(' · ') }), where), E('p', { className: 'msg', textContent: x.msg }));
         if (x.evidence) li.append(E('p', { className: 'evidence mono', textContent: x.evidence }));
         if (x.fix) li.append(E('p', { className: 'fix', textContent: 'Fix: ' + x.fix }));
         ul.append(li);
@@ -1010,6 +1057,7 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
   }
 
   $('go').onclick = async () => {
+    if(Goldfish.ERROR_TOOLS.every(([id])=>window.goldfishToolEnabled?.(id)===false)){setStatus('All error searches are OFF. Enable a search first.');return;}
     const user = $('user').value.trim();
     store.set('goldfish.user', user);
     $('go').disabled = true; $('copy').disabled = true; $('download').disabled = true;
@@ -1032,8 +1080,8 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
       });
       window.goldfishRunController?.signal.throwIfAborted();
       const never = window.goldfishToolEnabled?.('never-say-checker') === false ? [] : $('never').value.split('\n');
-      findings = Goldfish.audit({ ...data, neverSay: never, namingRules: window.goldfishToolEnabled?.('naming-corrections') === false ? [] : namingRules });
-      meta = { user, scope: data.scope, repoCount: data.repos.filter((r) => !r.fork).length, repos: data.repos, notes: data.notes, when: new Date().toISOString().slice(0, 10) };
+      findings = Goldfish.audit({ ...data, enabledErrorTools: Goldfish.ERROR_TOOLS.map(([id])=>id).filter(id=>window.goldfishToolEnabled?.(id)!==false), neverSay: never, namingRules: window.goldfishToolEnabled?.('naming-corrections') === false ? [] : namingRules });
+      meta = { user, enabledErrorTools: Goldfish.ERROR_TOOLS.map(([id])=>id).filter(id=>window.goldfishToolEnabled?.(id)!==false), scope: data.scope, repoCount: data.repos.filter((r) => !r.fork).length, repos: data.repos, notes: [...data.notes, 'Enabled error searches: '+Goldfish.ERROR_TOOLS.map(([id])=>id).filter(id=>window.goldfishToolEnabled?.(id)!==false).join(', ')], when: new Date().toISOString().slice(0, 10) };
       const s = Goldfish.summarize(findings);
       setMood(s.mood); fish.tx = W / 2 - 16; fish.ty = 14; redraw();
       setStatus(`${data.notes.length ? "Partial coverage — review Not covered this run. " : ""}Done: ${s.by.error} errors, ${s.by.warn} warnings, ${s.by.note} notes.`);
@@ -1055,16 +1103,16 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
 </script>
 
 <style>
-.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:16px 0}.tool-box{border:1px solid #8b7758;border-radius:12px;padding:14px}.tool-box legend{font-weight:bold}.tool-controls{display:flex;justify-content:space-between;gap:12px}.tool-controls input{width:auto}dialog{max-width:560px;width:85%;background:#201a16;color:#fff1d1;border:2px solid #cda450;border-radius:16px}dialog::backdrop{background:#0009}.chat-pet{width:64px;height:64px;object-fit:contain}.tool-note{font-size:.9rem}.tool-box button{margin-top:10px}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin:12px 0}.tool-box{border:1px solid #8b7758;border-radius:10px;padding:8px;font-size:.82rem;display:grid;grid-template-columns:62px minmax(0,1fr);column-gap:8px}.tool-box p{margin:4px 0}.tool-box legend{font-size:.85rem;overflow-wrap:anywhere}.tool-box small{display:none}.tool-box button{grid-column:2;font-size:.8rem;padding:5px}.tool-box br{display:none}.tool-box legend{font-weight:bold}.tool-controls{grid-column:1;grid-row:1 / span 4;display:flex;flex-direction:column;align-items:flex-start;gap:8px}.tool-controls label{white-space:nowrap}.tool-controls input{min-width:16px;min-height:16px}.tool-controls input{width:auto}dialog{max-width:560px;width:85%;background:#201a16;color:#fff1d1;border:2px solid #cda450;border-radius:16px}dialog::backdrop{background:#0009}.chat-pet{width:64px;height:64px;object-fit:contain}.tool-note{font-size:.9rem}.tool-box button{margin-top:10px}
 </style>
-<section id="official-tools" aria-label="Official tools"><h2>Tools</h2><div id="tool-grid" class="tool-grid"></div><h2>Tutorial tools</h2><p>These open L3 chat. A real agent connection is still required to deliver the tutorials.</p><div id="tutorial-grid" class="tool-grid"></div><p id="tool-feedback" role="status"></p></section>
+<section id="official-tools" aria-label="Official tools"><h2>Tools — error bubbles</h2><p>ON includes a search in the next scan. Sick reports a broken tool; it does not switch it off. Findings may match several bubbles but count once. A finding remains when any matching search is ON. These inspect fetched repository text and metadata, not running applications.</p><div id="tool-grid" class="tool-grid"></div><h2>Audit utilities</h2><div id="utility-grid" class="tool-grid"></div><h2>Tutorial tools</h2><p>These open L3 chat. A real agent connection is still required to deliver the tutorials.</p><div id="tutorial-grid" class="tool-grid"></div><p id="tool-feedback" role="status"></p></section>
 <button id="pet-chat" type="button" aria-label="Open GitHub Goldfish chat"><img class="chat-pet" src="art/idle-20261008.png" alt="GitHub Goldfish"></button>
 <dialog id="cyber-deck" aria-labelledby="chat-title"><h2 id="chat-title">Astra's Cyber Deck — GitHub Goldfish Chat</h2><p id="chat-context"></p><p>Seat: empty. No L3 agent is connected. This panel cannot send messages, build tools or run a tutorial yet.</p><button id="close-chat" type="button">Close chat</button></dialog>
 <script id="tool-controls">
 (()=>{
  const $=id=>document.getElementById(id), key='github-aquarium:tool-state:v1';
  let saved={schema:1,tools:{},backlog:[]};try{const x=JSON.parse(localStorage.getItem(key));if(x?.schema===1&&x.tools&&Array.isArray(x.backlog))saved=x;}catch{}
- const specs=[['github-auditor','Read authorized GitHub repositories.','go'],['naming-corrections','Remember explicit naming corrections.','learn-save'],['never-say-checker','Include your prohibited-word rules.','never'],['report-exporter','Copy or download the current report.','download'],['flash-audit','Manual procedure available; automation not built.',null],['play-with-github-goldfish','Learn to use this program in L3 chat.','tutorial'],['care-for-github-goldfish','Learn to maintain this program in L3 chat.','tutorial']];
+ const specs=[...Goldfish.ERROR_TOOLS.map(([id,description])=>[id,description,'go']),['github-auditor','Read authorized GitHub repositories.','go'],['naming-corrections','Remember explicit naming corrections.','learn-save'],['never-say-checker','Include your prohibited-word rules.','never'],['report-exporter','Copy or download the current report.','download'],['flash-audit','Manual procedure available; automation not built.',null],['play-with-github-goldfish','Learn to use this program in L3 chat.','tutorial'],['care-for-github-goldfish','Learn to maintain this program in L3 chat.','tutorial']];
  const persist=()=>{try{localStorage.setItem(key,JSON.stringify(saved));$('tool-feedback').textContent='Saved on this device. Farmer report delivery is not connected.';}catch{$('tool-feedback').textContent='Storage unavailable: this change will not survive closing the page.';}};
  const enabled=id=>saved.tools[id]?.on!==false;
  const openChat=name=>{$('chat-context').textContent=name?'Requested tutorial: '+name:'GitHub Goldfish chat';$('cyber-deck').showModal();};
@@ -1072,9 +1120,9 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
   const state=saved.tools[id]||={on:true,sick:false}; const box=document.createElement('fieldset');box.className='tool-box';box.id='tool-'+id;
   const legend=document.createElement('legend');legend.textContent=id;box.append(legend);
   const controls=document.createElement('div');controls.className='tool-controls';
-  for(const [prop,label] of [['sick','Not working'],['on','ON']]){const wrap=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.checked=state[prop];input.setAttribute('aria-label',id+' '+label);wrap.append(input,document.createTextNode(' '+label));controls.append(wrap);input.onchange=()=>{state[prop]=input.checked;if(prop==='sick')saved.backlog.push({tool:id,version:'1.0',kind:'manual-health',notWorking:input.checked,created:new Date().toISOString()});if(prop==='on'&&!input.checked){if(['github-auditor','never-say-checker','naming-corrections'].includes(id))window.goldfishRunController?.abort();if(target==='tutorial'&&$('cyber-deck').open)$('cyber-deck').close();}persist();};}
+  for(const [prop,label] of [['on','ON'],['sick','Sick']]){const wrap=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.checked=state[prop];input.setAttribute('aria-label',id+' '+label);wrap.append(input,document.createTextNode(' '+label));controls.append(wrap);input.onchange=()=>{state[prop]=input.checked;if(prop==='sick')saved.backlog.push({tool:id,version:'1.0',kind:'manual-health',notWorking:input.checked,created:new Date().toISOString()});if(prop==='on'&&!input.checked){if(id.endsWith('-error')||['github-auditor','never-say-checker','naming-corrections'].includes(id))window.goldfishRunController?.abort();if(target==='tutorial'&&$('cyber-deck').open)$('cyber-deck').close();}persist();};}
   box.append(controls);const p=document.createElement('p');p.textContent=description;box.append(p);const v=document.createElement('small');v.textContent='github-aquarium-v1.0-'+id+'-v1.0';box.append(v);
-  const b=document.createElement('button');b.type='button';b.textContent=target==='tutorial'?'Open tutorial chat':id==='flash-audit'?'Open Flash Audit instructions':'Open tool';b.onclick=()=>{if(!enabled(id)){$('tool-feedback').textContent=id+' is OFF.';return;}if(target==='tutorial')openChat(id);else if(id==='flash-audit')window.open('https://github.com/findastra/astras-pet-os/blob/codex/identity-bound-access-20261014/docs/flash-audit-20261014.md','_blank','noopener');else{const t=$(target);t?.scrollIntoView({block:'center',behavior:'auto'});t?.focus();}};box.append(document.createElement('br'),b);$(target==='tutorial'?'tutorial-grid':'tool-grid').append(box);
+  const b=document.createElement('button');b.type='button';b.textContent=target==='tutorial'?'Open tutorial chat':id==='flash-audit'?'Open Flash Audit instructions':target==='go'?'Search enabled tools':'Open tool';b.onclick=()=>{if(!enabled(id)){$('tool-feedback').textContent=id+' is OFF.';return;}if(target==='tutorial')openChat(id);else if(id==='flash-audit')window.open('https://github.com/findastra/astras-pet-os/blob/codex/identity-bound-access-20261014/docs/flash-audit-20261014.md','_blank','noopener');else if(target==='go')$('go').click();else{const t=$(target);t?.scrollIntoView({block:'center',behavior:'auto'});t?.focus();}};box.append(document.createElement('br'),b);$(target==='tutorial'?'tutorial-grid':id.endsWith('-error')?'tool-grid':'utility-grid').append(box);
  }
  $('pet-chat').onclick=()=>openChat();$('close-chat').onclick=()=>$('cyber-deck').close();
  const gate=(button,ids)=>$(button)?.addEventListener('click',e=>{const off=ids.find(id=>!enabled(id));if(off){e.preventDefault();e.stopImmediatePropagation();$('tool-feedback').textContent=off+' is OFF.';return;}if(button==='go'){window.goldfishRunController?.abort();window.goldfishRunController=new AbortController();}},true);

@@ -117,3 +117,5 @@ Desktop appearance draft updated 2026-10-11: see [desktop details](desktop-pet-2
 
 
 Flash Audit revision, OpenAI Codex (GPT-6), 2026-10-14: the program name is GitHub Aquarium; current hub is findastra/astras-pet-os. The Cage is retired. Approved art takes precedence over the legacy 32px wording above. Source work is on codex/flash-audit-20261014, not a deployed release. See docs/flash-audit-repairs-20261014.md for tools, tests and remaining integration work.
+
+Error-search expansion (2026-10-14): ten overlapping, individually selectable error searches with compact ON/Sick controls. See [error searches and proposed extensions](docs/error-searches-20261014.md). Source branch only; live verification and deployment remain pending.

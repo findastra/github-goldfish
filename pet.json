@@ -32,6 +32,86 @@
   },
   "tools": [
     {
+      "name": "document-control-error",
+      "version": "1.0",
+      "group": "error-search",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Required documents, headings and uncontrolled copies."
+    },
+    {
+      "name": "blatant-error",
+      "version": "1.0",
+      "group": "error-search",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Typos, placeholders, encoding and prohibited text."
+    },
+    {
+      "name": "organizational-error",
+      "version": "1.0",
+      "group": "error-search",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Names, topics, descriptions and organization."
+    },
+    {
+      "name": "systemic-error",
+      "version": "1.0",
+      "group": "error-search",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Account-wide consistency and registry problems."
+    },
+    {
+      "name": "link-error",
+      "version": "1.0",
+      "group": "error-search",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Repository paths, anchors and known GitHub links; no live external-site probes."
+    },
+    {
+      "name": "secret-exposure-error",
+      "version": "1.0",
+      "group": "error-search",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Recognizable secret patterns and sensitive filenames; not a full security scan."
+    },
+    {
+      "name": "pet-metadata-error",
+      "version": "1.0",
+      "group": "error-search",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Pet identity, required metadata and declared entry paths."
+    },
+    {
+      "name": "tool-definition-error",
+      "version": "1.0",
+      "group": "error-search",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Malformed tool lists, duplicate tool names and missing versions."
+    },
+    {
+      "name": "release-metadata-error",
+      "version": "1.0",
+      "group": "error-search",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Missing or inconsistent declared release versions; no deployed-release verification."
+    },
+    {
+      "name": "scan-coverage-error",
+      "version": "1.0",
+      "group": "error-search",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Unreadable files, incomplete trees and collector limitations."
+    },
+    {
       "name": "github-auditor",
       "version": "1.0",
       "group": "tools",
