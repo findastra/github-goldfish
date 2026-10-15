@@ -1196,7 +1196,35 @@ a{color:#86436f}.device{border-color:#805872;box-shadow:0 6px 0 #805872}.device-
       home.append(coin);root.querySelector('.home-group').append(home);
     }
   }
+
+  // Every shared-page coin flips on activation without replacing its existing action.
+  function flipCoin(coin) {
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if(coin._flip) coin._flip.cancel();
+    const start=getComputedStyle(coin).transform;
+    coin._flip=coin.animate([{transform:start==='none'?'rotateY(0deg)':start},{transform:'rotateY(1800deg)'}],{duration:1500,easing:'cubic-bezier(.12,.65,.2,1)'});
+  }
+  document.addEventListener('click',event=>{
+    for(const node of event.composedPath()) {
+      if(!(node instanceof Element)) continue;
+      const coin=node.matches('.coin,.goldfish-coin,.chip-coin,[data-pet-coin]')?node:node.matches('button,a')?node.querySelector('.coin,.goldfish-coin,.chip-coin,[data-pet-coin]'):null;
+      if(!coin) continue;
+      flipCoin(coin);
+      const link=coin.closest('a');
+      if(link && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && link.target!=='_blank') {
+        event.preventDefault(); setTimeout(()=>location.assign(link.href),550);
+      }
+      break;
+    }
+  },true);
   customElements.define('astra-footer', AstraFooter);
 })();
-</script></body>
+</script><style>
+/* Compact bright tool names: details expand beneath the name, never stretch it. */
+.tool-grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:10px}
+.tool-box{flex:0 1 auto;width:fit-content;max-width:100%;padding:0;border:0;background:transparent}
+.tool-box summary{display:list-item;width:fit-content;max-width:100%;margin:0 auto;padding:9px 16px;border:1px solid #ac397c;border-radius:999px;background:#ff9fd2;color:#422039;box-shadow:0 3px 0 #bf6297;font-weight:700}
+.tool-box:has(details[open]){padding:12px;border:1px solid #d994ba;border-radius:20px;background:#fff4fb;max-width:min(100%,680px)}
+#official-tools>h2,#official-tools>p{text-align:center}
+</style></body>
 </html>
