@@ -15,6 +15,16 @@ Every finding says where it is (file and line when it can), what is wrong, and a
 
 ## Run it
 
+**Local PetOS quick skill:** three consecutive clicks on the desktop Goldfish open
+**findastra-README-auditor**. It reads the public profile, asks an L3 maker and a
+separate checker for a revised README, accepts your change requests, then pushes
+the exact draft you approve to a branch and pull request. It does not merge.
+The Aquarium's tools include the same launcher. See the
+[local setup and review flow](docs/readme-auditor-20261015.md).
+
+This bounded local workflow uses the installed Codex CLI and saved ChatGPT sign-in.
+The general browser chat and the planned shared Pet SDK are separate connections.
+
 **In a browser:** open `index.html`, leave the account as `findastra` (or type another), paste a token for that account if you want private repos checked too, press **Release the goldfish**. Untick **Include private repos** for a public-only run. Tested when served from `localhost` (`python -m http.server`). Opening the file directly should also work but has not been tested.
 
 **On the command line** (Node 20 or newer):

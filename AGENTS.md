@@ -52,3 +52,10 @@ Flash Audit revision, OpenAI Codex (GPT-6), 2026-10-14: the program name is GitH
 Error-search revision, OpenAI Codex (GPT-6), 2026-10-14: retain the four canonical categories and add overlapping tool IDs from ERROR_TOOLS. New tool-definition/release-metadata checks and coverage safeguards are documented in docs/error-searches-20261014.md.
 
 Shared original yellow-phone shell and Pet Collar UI by OpenAI Codex (GPT-6), 2026-10-15. Coins retired by owner. Existing program/host behavior is preserved; shared disconnected controls do not establish an L3 connection.
+
+README auditor, OpenAI Codex (GPT-6), 2026-10-15: the owner-requested local companion
+is documented in docs/readme-auditor-20261015.md. The existing audit engine remains
+single-file and dependency-free. The separate local server uses Node built-ins,
+Codex maker/checker sessions, and a fixed README-only GitHub publisher. Keep the
+local session credential separate from GitHub credentials; never send GitHub
+credentials to the model or browser. Source skill naming requires SKILL.md.
