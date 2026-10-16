@@ -15,7 +15,7 @@
   "version": "1.0.0-draft-20261014",
   "built_with": "Claude Sonnet 5.5 (claude-sonnet-5-5), 2026-10-07; browser interface and naming corrections prepared with Codex (GPT-6), 2026-10-08; private-repo support added with Claude Opus 5.5 (claude-opus-5-5), 2026-10-09; OpenAI Codex (GPT-6), 2026-10-11; Flash Audit repairs by OpenAI Codex (GPT-6), 2026-10-14",
   "preview": "github-goldfish-20261008.html",
-  "source": "https://github.com/findastra/github-goldfish/tree/codex/yellow-phone-20261015",
+  "source": "https://github.com/findastra/github-goldfish/tree/codex/findastra-readme-auditor-20261015",
   "release_tag": "v0.2.0-20261008",
   "publication_status": "branch-source; revised-browser-validation-pending; not-deployed",
   "visibility": "private",
@@ -166,13 +166,34 @@
       "status": "planned",
       "visibility": "private",
       "intended_use": "Learn to maintain GitHub Aquarium in L3 chat"
+    },
+    {
+      "name": "findastra-README-auditor",
+      "version": "1.0",
+      "group": "tools",
+      "status": "implemented-source",
+      "visibility": "private",
+      "intended_use": "Owner-triggered profile audit, L3 rewrite and separate review, then an approved branch push and pull request for findastra/findastra/README.md."
     }
   ],
   "framework_limitations": [
-    "L3 provider not connected",
     "Farmer defect delivery not connected",
     "tool OFF is local execution control, not protected-core enforcement",
     "tutorials require L3 connection",
-    "no signed release or OS isolation"
-  ]
+    "no signed release or OS isolation",
+    "general browser chat and tutorials are separate; only the local README workflow connects to Codex L3"
+  ],
+  "skills": [
+    {
+      "name": "findastra-readme-auditor",
+      "display_name": "findastra-README-auditor",
+      "entry": "skills/findastra-readme-auditor/SKILL.md",
+      "version": "1.0"
+    }
+  ],
+  "clicker_training": {
+    "three_clicks": "findastra-README-auditor",
+    "runtime": "astras-pet-os/scripts/desktop-pets-20261011.cs",
+    "status": "desktop triple-click and local maker/checker verified 2026-10-15"
+  }
 }

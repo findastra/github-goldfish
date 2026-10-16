@@ -5,7 +5,7 @@
   "description": "A pixel goldfish that audits every word in a GitHub account's repos, private ones too with a token.",
   "license": "MIT",
   "scripts": {
-    "test": "node --test \"test/*.test.mjs\"",
+    "test": "node --test \"test/*.mjs\"",
     "audit": "node scripts/goldfish-cli.mjs",
     "sync-sprite": "node scripts/sync-sprite.mjs"
   },
