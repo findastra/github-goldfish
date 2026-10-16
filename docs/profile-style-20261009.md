@@ -27,3 +27,19 @@
 
 ## In general
 - Only add decoration Astra asked for. Ask before changing the look.
+
+## Pet roster (Astra's corrections, 2026-10-16)
+*Checked first in every audit and pinned to the top of the report as `(pet roster)`. Recorded with Claude Opus 5.5 (`claude-opus-5-5`).*
+
+- Line shape: ``N. [`repo`](link) -- **Pet** · *Home*: what the pet does   [status]``.
+- **Pet first, home second.** A place (Kingdom, Station, Den, Casino, site…) in the pet slot means they are switched: Astra fixed `File Kingdom · File Master` to `File Master · File Kingdom`, and `Dubstep Gunsmith` (a catalog site) is a home waiting for its pet.
+- **Every pet has a home.** No home is reported once, as a list.
+- **No placeholder names** (`pet-program-77-icon-77`).
+- **Status is not a home or a job.** `planned:` / `not decided yet:` in the home slot, or "… are planned" in the job, gets rewritten as what the pet does; status goes in `[brackets]` at the end (`[not connected to any mail account yet]`).
+- **A category is not a home** (`tasks:`, `AI cost:`, `network:`).
+- **The job does not repeat the home** (`runs The Police Station: …`).
+- **Finish the sentence**: "list what needs Astra" became "lists what needs Astra's (L4) attention".
+- **Counts as floors**: "26 dated tools" became "30+ dated tools".
+- **No editing markers in public** (`[? …]`, `[Suggest one?]`).
+- **Numbers**: one pet per number; a repo that calls itself "pet program (#N)" belongs in the numbered list; hatched pets come off the seeds line.
+- The list is written by the Friendly Farmer from `astras-pet-apps/pet-programs.json` (`icon`, `program`, `mini_descriptor.text`). Fix the JSON there, not just the README, or the next profile round puts the old text back.

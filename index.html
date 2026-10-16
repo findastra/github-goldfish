@@ -189,7 +189,7 @@ footer { margin-top: 40px; color: var(--muted); font-size: .85rem; border-top: 1
   </section>
 
   <footer>
-    <p><strong>Checks:</strong> Document control (missing or malformed required files, pet files, headings, stray copies and secrets files), Blatant (typos, doubled words, mojibake, placeholders, secrets, broken links and anchors, brand spellings, never-say words), Organizational (names, topics, homepage, stubs, profile list, old pet words from the Cage's PET-WORDS.md), Systemic (patterns across the whole account: license, apostrophes, dashes, description style, the Cage registry).</p>
+    <p><strong>Checks:</strong> Pet roster first (placeholder names, pet and home switched, status or category where the home belongs, pets with no home, editing markers left in, lines that stop mid-thought, stale counts, numbering, hatched pets still on the seeds line), then Document control (missing or malformed required files, pet files, headings, stray copies and secrets files), Blatant (typos, doubled words, mojibake, placeholders, secrets, broken links and anchors, brand spellings, never-say words), Organizational (names, topics, homepage, stubs, profile list, old pet words from the Cage's PET-WORDS.md), Systemic (patterns across the whole account: license, apostrophes, dashes, description style, the Cage registry).</p>
     <p><strong>Not checked:</strong> spelling beyond a short typo list and doubled words, external links (browsers cannot test them), issues, pull requests, wikis, releases, gists, commit messages, text inside images, private repos when no token for the account is given, organizations' private repos, the contents of live websites.</p>
     <p>GitHub Goldfish <a href="https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008">v0.2.0-20261008 source</a>. Built by Claude Sonnet 5.5 (<code>claude-sonnet-5-5</code>), 2026-10-07; naming corrections added by Codex (GPT-6), 2026-10-08; private repos added by Claude Opus 5.5 (<code>claude-opus-5-5</code>), 2026-10-09. Made for Astra. MIT licensed.</p>
   </footer>
@@ -502,6 +502,62 @@ const Goldfish = (() => {
     }
   }
 
+  /* ---------- pet roster checks (profile README pet list) ----------
+     Astra's own corrections, 2026-10-16. These run first and are pinned to the top of every report.
+     Line shape: N. [`repo`](link) -- **Pet** · *Home*: what the pet does   [status] */
+  const ROSTER = '(pet roster)';
+  const PET_LINE = /^(\d+)\.\s+(?:\[`([^`]+)`\]\([^)]*\)|`([^`]+)`\s+\*\(private\)\*)\s+--\s+\*\*([^*]+)\*\*\s*(?:·\s*)?(.*)$/;
+  const PLACE_WORDS = /\b(kingdom|house|station|room|den|nest|ring|farm|casino|gates|doghouse|shop|hive|tavern|lair|mold|perch|jungle|iceberg|tower|clinic|desk|hq|press|closet|kennel|shed|aquarium|cage|barn|garden|pond|burrow|library|site|website)$/i;
+  // A job phrase before a colon ("organizes your mail: …") is not a category label.
+  const ROSTER_JOB = /^(organizes|watches|keeps|tracks|manages|helps|makes|runs|plans|saves|records|opens|drafts|reports|swims|monitors|checks|archives|hosts data)\b|(tracker|desk|app|pet)$/i;
+  function rosterChecks(txt, repoMap, sink) {
+    const add = (cat, sev, where, msg, extra = {}) => sink.add(cat, sev, ROSTER, where, msg, { top: true, ...extra });
+    const pets = [];
+    const noHome = [];
+    txt.split('\n').forEach((ln, i) => {
+      const line = i + 1;
+      if (/\[\?|\[suggest\b|\bsuggest (?:one|else)\?/i.test(ln)) add('Blatant', 'error', 'README.md', 'An editing marker ([? …] or "suggest …?") is published on the profile.', { line, evidence: clip(ln.trim(), 90), fix: 'Decide the wording, or take the marker out.' });
+      const m = PET_LINE.exec(ln);
+      if (!m) return;
+      const num = +m[1], repo = m[2] || m[3], pet = m[4].trim();
+      let rest = m[5].trim(), home = null;
+      const hm = /^\*([^*]+)\*\s*:\s*(.*)$/.exec(rest);
+      if (hm) { home = hm[1].trim(); rest = hm[2].trim(); }
+      pets.push({ num, repo, pet, home, job: rest, line });
+      const where = `README.md #${num} ${pet}`;
+      if (/pet-program-\d+|icon-\d+/i.test(pet)) add('Blatant', 'error', where, `Pet #${num} has a placeholder for a name: "${pet}".`, { line, fix: 'Give the pet its own name.' });
+      if (PLACE_WORDS.test(pet) || /^(?:astra['’]s\s+)?(?:\w+\s+)?(?:web)?site\b/i.test(rest)) add('Organizational', 'warn', where, `"${pet}" reads like a home (a place), not a pet. The pet and its home may be switched.`, { line, evidence: clip(ln.replace(/^.*?--\s*/, ''), 90), fix: 'Pet first, then its home: **Pet** · *Home*: what it does.' });
+      if (/^(planned|not decided yet|not built yet|tbd|todo)\s*:/i.test(rest)) add('Organizational', 'warn', where, `Pet #${num}'s status ("${rest.split(':')[0]}") sits where its home or job belongs.`, { line, fix: 'Write the job; put status in [brackets] at the end of the line.' });
+      else if (!home && /^[a-z][a-z /]{1,30}:\s/.test(rest) && !ROSTER_JOB.test(rest.split(':')[0])) add('Organizational', 'warn', where, `Pet #${num} has a category ("${rest.split(':')[0]}") where its home belongs.`, { line, fix: 'Name the home: **Pet** · *Home*: what it does.' });
+      else if (!home) noHome.push(`#${num} ${pet}`);
+      if (/\b(?:is|are) planned\b|\bnot built yet\b|\bwill run\b/i.test(rest)) add('Organizational', 'note', where, `Pet #${num}'s job is written as a plan, not as what it does.`, { line, evidence: clip(rest, 90), fix: 'Say what it does; keep status in [brackets] at the end.' });
+      if (home && new RegExp(`^runs\\s+${home.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(rest)) add('Organizational', 'note', where, `Pet #${num}'s job repeats its home's name ("runs ${home}").`, { line, fix: 'Start the job with what the pet does.' });
+      if (/\bneeds\s+(?:astra|her|you)\s*\.?$/i.test(rest)) add('Blatant', 'warn', where, `Pet #${num}'s line stops mid-thought ("…${rest.slice(-20)}").`, { line, fix: 'Finish it, e.g. "what needs Astra\'s (L4) attention."' });
+      const cnt = /\b(\d{2,})\s+(?:dated\s+)?(tools|apps|pets|repos|scripts|features|lessons)\b/i.exec(rest);
+      if (cnt) add('Organizational', 'note', where, `Pet #${num} states an exact count ("${cnt[0]}") that goes stale.`, { line, fix: `Use a floor, e.g. "${Math.floor(cnt[1] / 10) * 10}+ ${cnt[2]}".` });
+    });
+    if (!pets.length) return;
+    if (noHome.length) add('Organizational', 'warn', 'README.md', `${noHome.length} pet${noHome.length === 1 ? ' has' : 's have'} no home: ${noHome.join(', ')}.`, { fix: 'Give each one: **Pet** · *Home*: what it does.' });
+    const nums = pets.map((p) => p.num);
+    const dup = [...new Set(nums.filter((n, i) => nums.indexOf(n) !== i))];
+    if (dup.length) add('Document control', 'warn', 'README.md', `Pet numbers used twice: ${dup.join(', ')}.`);
+    const missing = [];
+    for (let n = Math.min(...nums); n <= Math.max(...nums); n++) if (!nums.includes(n)) missing.push(n);
+    const listed = new Set(pets.map((p) => p.repo));
+    txt.split('\n').forEach((ln, i) => {
+      const b = /^[-*]\s+(?:\[`([^`]+)`\]|`([^`]+)`).*?\bpet program \(#(\d+)/i.exec(ln);
+      if (b && !listed.has(b[1] || b[2])) add('Organizational', 'error', 'README.md', `${b[1] || b[2]} says it is pet program #${b[3]} but sits outside the numbered pet list.`, { line: i + 1, fix: `Move it into the pet list as #${b[3]}.` });
+    });
+    if (missing.length) add('Document control', 'note', 'README.md', `Pet numbers missing from the list: ${missing.join(', ')}. Fine for seeds not on GitHub yet; otherwise find them.`);
+    const sm = /^Seeds[^:\n]*:\s*(.+)$/im.exec(txt);
+    if (sm) {
+      const names = new Set(pets.map((p) => p.pet.toLowerCase()));
+      const seeds = [...sm[1].matchAll(/\*\*([^*]+)\*\*/g)].map((x) => x[1].trim());
+      const hatched = seeds.filter((s) => names.has(s.toLowerCase()));
+      if (hatched.length) add('Organizational', 'error', 'README.md', `The seeds line still lists pets that are already in the numbered list: ${hatched.join(', ')}.`, { line: lineOf(txt, sm.index), fix: 'Take hatched pets off the seeds line.' });
+    }
+  }
+
   /* ---------- the audit ---------- */
   function audit(model) {
     const sink = makeSink();
@@ -641,6 +697,7 @@ const Goldfish = (() => {
     if (!profRepo) add('Organizational', 'warn', '(profile)', 'profile README', `No ${user}/${user} repo, so the profile page has no README.`);
     else if (profRepo.files['README.md']) {
       const txt = profRepo.files['README.md'];
+      rosterChecks(txt, repoMap, sink);
       const listed = new Set();
       const bullet = /^(?:[-*]|\d+\.)\s+\[`?([^\]`]+?)`?\]\(([^)]+)\)\s*(?:--|—|–|:|-)\s*(.+)$/gm;
       let m;
@@ -715,7 +772,7 @@ const Goldfish = (() => {
     styleCheck('dashes', { 'em dash (—)': /—/g, 'double hyphen (--)': / -- /g, 'spaced hyphen ( - )': /\S - \S/g });
 
     sink.list.forEach((f, i) => { f.n = i; });
-    sink.list.sort((a, b) => SEV_ORDER[a.sev] - SEV_ORDER[b.sev] || CATS.indexOf(a.cat) - CATS.indexOf(b.cat) || a.n - b.n);
+    sink.list.sort((a, b) => (b.top ? 1 : 0) - (a.top ? 1 : 0) || SEV_ORDER[a.sev] - SEV_ORDER[b.sev] || CATS.indexOf(a.cat) - CATS.indexOf(b.cat) || a.n - b.n);
     return sink.list;
   }
 
@@ -982,7 +1039,7 @@ if (typeof module !== 'undefined') module.exports = Goldfish;
     f.append(chip('Show notes', showNotes, () => { showNotes = !showNotes; render(); }));
     const shown = findings.filter((x) => (catFilter === 'All' || x.cat === catFilter) && (showNotes || x.sev !== 'note'));
     const groups = new Map(); shown.forEach((x) => { if (!groups.has(x.repo)) groups.set(x.repo, []); groups.get(x.repo).push(x); });
-    const order = [...groups.keys()].sort((a, b) => (a.startsWith('(') ? -1 : 0) - (b.startsWith('(') ? -1 : 0) || groups.get(b).filter((x) => x.sev === 'error').length - groups.get(a).filter((x) => x.sev === 'error').length || a.localeCompare(b));
+    const order = [...groups.keys()].sort((a, b) => (b === '(pet roster)') - (a === '(pet roster)') || (a.startsWith('(') ? -1 : 0) - (b.startsWith('(') ? -1 : 0) || groups.get(b).filter((x) => x.sev === 'error').length - groups.get(a).filter((x) => x.sev === 'error').length || a.localeCompare(b));
     const host = $('repos'); host.replaceChildren();
     if (!shown.length) host.append(E('p', { className: 'empty', textContent: 'Nothing to flag here. The goldfish is happy.' }));
     for (const repo of order) {

@@ -439,3 +439,73 @@ test('the profile list can be numbered (a running list) as well as bulleted', ()
   const fs = run([prof, repo('aa')]);
   assert.ok(!has(fs, /does not list aa/));
 });
+
+/* ---- Pet roster checks (Astra's corrections, 2026-10-16) ---- */
+const prof = (body) => repo('me', { files: { 'README.md': `## Hi\n\n### Astra's PetOS\n\n${body}\n` } });
+const rost = (fs) => fs.filter((f) => f.repo === '(pet roster)');
+
+test('roster: clean pet list raises nothing and stays quiet', () => {
+  const body = [
+    "1. [`astras-pet-os`](https://github.com/me/astras-pet-os) -- **Friendly Farmer** · *The Farm*: organizes the pets and lists what needs Astra's (L4) attention.",
+    '2. [`github-goldfish`](https://github.com/me/github-goldfish) -- **GitHub Goldfish** · *GitHub Aquarium*: swims through every public word on the account. [not connected yet]',
+  ].join('\n');
+  const fs = run([prof(body), repo('astras-pet-os'), repo('github-goldfish')]);
+  assert.equal(rost(fs).length, 0);
+});
+
+test('roster: placeholder name, swapped pet and home, status and category in the home slot', () => {
+  const body = [
+    '1. [`a`](https://github.com/me/a) -- **pet-program-77-icon-77** · triages tickets',
+    '2. [`file-master`](https://github.com/me/file-master) -- **File Kingdom** · *File Master*: organizes your files',
+    '3. [`c`](https://github.com/me/c) -- **Dubstep Gunsmith** · Astra’s catalog site for avatar gun effects',
+    '4. [`d`](https://github.com/me/d) -- **Project Parrot** · planned: reviews OneNote',
+    '5. [`e`](https://github.com/me/e) -- **Queue Quokka** · tasks: watches retries',
+  ].join('\n');
+  const fs = run([prof(body), ...['a', 'file-master', 'c', 'd', 'e'].map((n) => repo(n))]);
+  assert.ok(has(fs, /placeholder for a name/, '(pet roster)'));
+  assert.ok(has(fs, /"File Kingdom" reads like a home/));
+  assert.ok(has(fs, /"Dubstep Gunsmith" reads like a home/));
+  assert.ok(has(fs, /status \("planned"\)/));
+  assert.ok(has(fs, /category \("tasks"\)/));
+  assert.ok(has(fs, /no home: #1 pet-program-77-icon-77, #3 Dubstep Gunsmith/));
+  assert.ok(fs[0].top, 'roster findings are first in the report');
+});
+
+test('roster: markers, mid-thought endings, stale counts, repeated home, plans', () => {
+  const body = [
+    '1. [`a`](https://github.com/me/a) -- **Friendly Farmer** · *The Farm*: keeps things up to date, and list what needs Astra',
+    '2. [`b`](https://github.com/me/b) -- **Unity Unicorn** · *The Unicorn Den*: a desk with 26 dated tools',
+    '3. [`c`](https://github.com/me/c) -- **Pet Police Officer** · *The Police Station*: runs The Police Station: watches every write',
+    '4. [`d`](https://github.com/me/d) -- **Mommy\'s Mommies** · *Mommy\'s HQ*: plans classes. Calendar and Discord connections are planned',
+    '5. [`e`](https://github.com/me/e) -- **Drum Dog** · [Suggest one?]: saves music',
+  ].join('\n');
+  const fs = run([prof(body), ...['a', 'b', 'c', 'd', 'e'].map((n) => repo(n))]);
+  assert.ok(has(fs, /stops mid-thought/));
+  assert.ok(has(fs, /exact count \("26 dated tools"\)/));
+  assert.ok(has(fs, /repeats its home's name/));
+  assert.ok(has(fs, /written as a plan/));
+  assert.ok(has(fs, /editing marker/));
+});
+
+test('roster: numbering, pets outside the list, hatched seeds', () => {
+  const body = [
+    '1. [`a`](https://github.com/me/a) -- **Pole Puff** · *Astra\'s Infinite Pole*: manages the world',
+    '3. [`b`](https://github.com/me/b) -- **Photo Dodo** · *Photo Album*: tracks pictures',
+    '',
+    '- [`the-cats-closet`](https://github.com/me/the-cats-closet) -- closet Cat\'s pet program (#2, seed): organizes your closet',
+    '',
+    'Seeds, named and waiting to hatch: **Pole Puff** · manages the world; **Video Vulture** · tracks videos',
+  ].join('\n');
+  const fs = run([prof(body), repo('a'), repo('b'), repo('the-cats-closet')]);
+  assert.ok(has(fs, /numbers missing from the list: 2\b/));
+  assert.ok(has(fs, /the-cats-closet says it is pet program #2/));
+  assert.ok(has(fs, /seeds line still lists .*Pole Puff/));
+  assert.ok(!has(fs, /seeds line still lists .*Video Vulture/), 'a real seed is not flagged');
+});
+
+test('roster: does not fire on code blocks, ordinary lists or other repos', () => {
+  const fs = run([repo('x', { files: { 'README.md': '# x\n\n1. [`farm`](https://x) -- **The Farm** · planned: stuff\n' } }), repo('me')]);
+  assert.equal(rost(fs).length, 0, 'only the profile README is a roster');
+  const fs2 = run([prof('- [`x`](https://github.com/me/x) -- a plain bullet'), repo('x')]);
+  assert.equal(rost(fs2).length, 0);
+});
