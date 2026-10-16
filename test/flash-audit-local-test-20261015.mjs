@@ -15,6 +15,13 @@ test('missing and invalid metadata are explicit, not successful empty audits',()
  assert.equal(inspectSnapshot({files:[],metadata:null}).find(r=>r.check==='A16').status,'Incorrect');
  const rows=inspectSnapshot({files:[],metadata});assert.equal(rows[0].status,'Missing');assert.match(rows[1].detail,/entry target/);
 });
+test('A52 flags a missing activity bubble and never certifies source as live L3',()=>{
+ const row=entry=>inspectSnapshot({files,metadata,entry}).find(r=>r.check==='A52');
+ assert.equal(row('Clicker Training').status,'Missing');
+ assert.equal(row('data-astra-l3-config data-astra-l3-script').status,'Missing');
+ assert.equal(row('data-astra-l3-config data-astra-l3-script data-astra-l3-style').status,'Not verified');
+ assert.match(row('data-astra-l3-config data-astra-l3-script data-astra-l3-style').detail,/real task/);
+});
 test('entry path traversal is not read or reported as an existing target',()=>{
  const dir=mkdtempSync(join(tmpdir(),'flash-audit-'));try{
   writeFileSync(join(dir,'pet.json'),JSON.stringify({...metadata,entry:'../outside.html'}));

@@ -23,6 +23,8 @@ export function inspectSnapshot({files,metadata,entry=''}){
   add('A41',entry.includes('Clicker Training')?'Not verified':'Missing',entry.includes('Clicker Training')?'Training source exists; desktop click timing and actions need live verification.':'No Clicker Training section found in the inspected entry source.');
   add('A44',entry.includes('data-astra-phone-baseline')?'Not verified':'Missing',entry.includes('data-astra-phone-baseline')?'Shared phone source exists; inspect rendered chat and host behavior.':'Shared phone baseline not found.');
   add('A45',entry.includes('data-astra-paper-data')?'Not verified':'Missing',entry.includes('data-astra-paper-data')?'Paper/zoom source exists; browser viewport acceptance is separate.':'Shared stationery source not found.');
+  const activity=/data-astra-l3-config/.test(entry)&&/data-astra-l3-script/.test(entry)&&/data-astra-l3-style/.test(entry);
+  add('A52',activity?'Not verified':'Missing',activity?'Shared L3 activity source exists. Observe a real task, provider/session, timestamps, disconnect, OFF, stale feed and desktop/mobile rendering before passing.':'Required shared L3 activity bubble/config/script/style not found in the inspected entry source.');
   for(const check of ['A19','A20','A21','A22','A25','A26','A27','A28','A29','A30','A32','A39','A43','A46','A47','A48','A49','A50','A51'])add(check,'Not verified','Needs runtime, provenance or visual evidence; this preflight never certifies it.');
   return rows;
 }
