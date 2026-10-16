@@ -64,3 +64,5 @@ README completeness repair, OpenAI Codex (GPT-6), 2026-10-15: check the full
 public catalog and registry, not only linked repositories. Enforce stable IDs,
 unique visible animal rows and whole-document seed-prose checks. Source commits
 and source/draft coverage must be visible; no model approval overrides failures.
+
+Shared L3 activity adapter and Flash Audit A52 by OpenAI Codex (GPT-6), 2026-10-16. The README auditor reports actual local harness status; standalone programs without an adapter remain disconnected. Source presence never certifies a live L3 connection.
