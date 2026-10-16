@@ -25,6 +25,34 @@ Completed and partial receipts remain in local state, including the last twenty
 publications. The Aquarium's **Launcher ON** checkbox only gates that page's
 launcher; it is not the workflow kill switch. Blue/amber records maintenance.
 
+## Complete catalog and whole-document checks
+
+The audit compares every catalog entry, including animals without a public
+repository, and reconciles named animals in the registry's registered, pipeline
+and seed lists. Public main and the installed PetOS checkout's **published commit**
+are read at pinned revisions. The panel shows each revision and any branch-only
+additions. Unpublished local changes are not sent to the model. Missing public
+source files or conflicting identities stop the audit instead of shrinking its
+expected count.
+For existing IDs, public main's descriptions and stages take precedence;
+different installed-branch metadata is reported rather than silently replacing
+main. Only new published branch IDs extend the catalog.
+
+Each animal needs one visible row with its stable catalog ID, exact name and
+verified repository link, or an unlinked name when there is no public repository.
+An explicit animal-name plus catalog-ID match in public repository metadata may
+identify a renamed repository; the panel reports that stale catalog mapping.
+Repository visibility comes from the current public GitHub listing. Stale
+registry visibility is reported separately, not used to hide an animal.
+
+The panel shows source and draft totals, missing entries, duplicates, incorrect
+IDs and stale roster prose through the last line. The obsolete trailing Seeds
+paragraph and contradictory Skill Scout description are regression cases.
+Comments, code, quoted text and collapsed lists cannot satisfy visible roster
+coverage. Ordinary cross-references and unrelated numbered instructions remain
+valid. Deterministic failures block model approval and publication; two failed
+repair rounds return the findings for review. Old drafts require a fresh audit.
+
 ## Local setup
 
 Requirements: Windows, Node 20+, a current Codex CLI signed in through ChatGPT,

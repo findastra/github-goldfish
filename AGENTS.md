@@ -27,7 +27,7 @@ A single-file browser app (`index.html`) plus a small command-line wrapper. It f
 - Pets live in the Cage: <https://github.com/findastra/astras-pet-apps>. Add or update this pet's row in its `pets.json` and README table when this repo changes status (hatching, growing, grown).
 
 ## Running things
-- Tests: `node --test "test/*.test.mjs"`
+- Tests: `npm test` (includes the dated `test/*-YYYYMMDD.mjs` files).
 - Audit: `node scripts/goldfish-cli.mjs findastra`
 - GitHub allows 60 anonymous API calls an hour; set `GITHUB_TOKEN` for more. A token for the audited account also opens its private repos (`--public-only` leaves them out).
 - Private files are read through `api.github.com` contents, never `raw.githubusercontent.com`, so the token goes to one host only. Keep it that way.
@@ -59,3 +59,8 @@ single-file and dependency-free. The separate local server uses Node built-ins,
 Codex maker/checker sessions, and a fixed README-only GitHub publisher. Keep the
 local session credential separate from GitHub credentials; never send GitHub
 credentials to the model or browser. Source skill naming requires SKILL.md.
+
+README completeness repair, OpenAI Codex (GPT-6), 2026-10-15: check the full
+public catalog and registry, not only linked repositories. Enforce stable IDs,
+unique visible animal rows and whole-document seed-prose checks. Source commits
+and source/draft coverage must be visible; no model approval overrides failures.

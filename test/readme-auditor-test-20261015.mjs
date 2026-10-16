@@ -5,8 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Auditor,validateDraft,publishDraft,createAuditorServer } from '../scripts/readme-auditor-server-20261015.mjs';
 const prefix='<h2 align="center">Astra</h2>\n\n';
-const evidence={base:'base-sha',branch:'main',blob:'blob-sha',readme:prefix+'### Projects\n'+'Original profile. '.repeat(20),repos:[{name:'astras-pet-os'}]};
-const draft=prefix+'<!-- findastra-readme-auditor: managed -->\n### Projects\n'+('Astra builds creative projects. '.repeat(10))+'\n[The Farm](https://github.com/findastra/astras-pet-os)\n';
+const evidence={base:'base-sha',branch:'main',blob:'blob-sha',readme:prefix+'### Projects\n'+'Original profile. '.repeat(20),repos:[{name:'astras-pet-os'}],programs:[{number:1,icon:'Friendly Farmer',repo:'astras-pet-os',stage:'registered',description:'Organizes the pets.'}]};
+const draft=prefix+'<!-- findastra-readme-auditor: managed -->\n### Projects\n'+('Astra builds creative projects. '.repeat(10))+'\n1. [astras-pet-os](https://github.com/findastra/astras-pet-os) -- **Friendly Farmer** · The Farm.\n';
 const until=async check=>{for(let i=0;i<200;i++){if(check())return;await new Promise(r=>setTimeout(r,5));}throw Error('Timed out');};
 function setup(t,overrides={}){const data=mkdtempSync(join(tmpdir(),'goldfish-readme-20261015-'));t.after(()=>rmSync(data,{recursive:true,force:true}));return new Auditor({data},{collect:async()=>structuredClone(evidence),agent:async({role})=>role==='maker'?{readme:draft,findings:['Shorten the stale catalog.']}:{approved:true,findings:[]},publish:async()=>({url:'https://github.com/findastra/findastra/pull/1',commit:'verified'}),...overrides});}
 test('valid draft passes; header changes, unknown repos, private paths and new external URLs fail',()=>{
@@ -24,6 +24,15 @@ test('maker and separate checker finish before approval; feedback calls both aga
 test('checker rejection cannot be approved; automatic revisions stop after two rounds',async t=>{
  let calls=0;const a=setup(t,{agent:async({role})=>{calls++;return role==='maker'?{readme:draft,findings:[]}:{approved:false,findings:['Unsupported claim.']};}});
  a.start();await until(()=>!a.busy);assert.equal(calls,4);assert.equal(a.state.status,'changes-needed');await assert.rejects(a.push(a.state.draft.hash),/Approval/);
+});
+test('missing animals and stale final paragraphs cannot be overridden by model approval',async t=>{
+ const calls=[];const a=setup(t,{agent:async({role})=>{calls.push(role);return role==='maker'?{readme:draft+'\nSeeds, named and waiting to hatch: Friendly Farmer',findings:[]}:{approved:true,findings:[]};}});
+ a.start();await until(()=>!a.busy);assert.equal(a.state.status,'changes-needed');assert.deepEqual(calls,['maker','maker']);assert.equal(a.state.draft.hash,null);
+ assert.equal(a.state.draftAudit.ok,false);await assert.rejects(a.push(null),/Approval/);
+});
+test('deterministic feedback repairs a bad first draft before the checker runs',async t=>{
+ let attempts=0;const a=setup(t,{agent:async({role,prompt})=>{if(role==='checker')return {approved:true,findings:[]};attempts++;if(attempts===2)assert.match(prompt,/Separate seed roster/);return {readme:draft+(attempts===1?'\nSeeds, named and waiting to hatch: Friendly Farmer':''),findings:[]};}});
+ a.start();await until(()=>!a.busy);assert.equal(attempts,2);assert.equal(a.state.status,'awaiting-review');assert.equal(a.state.draftAudit.ok,true);
 });
 test('OFF blocks every entry, cancels an in-flight model and survives restart',async t=>{
  const a=setup(t,{agent:async({signal})=>new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(Error('cancelled')),{once:true}))});

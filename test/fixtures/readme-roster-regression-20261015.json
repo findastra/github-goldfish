@@ -1,0 +1,1362 @@
+{
+  "catalog": {
+    "programs": [
+      {
+        "number": 1,
+        "repo": "astras-pet-os",
+        "icon": "Friendly Farmer",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "the-farm-v1.0-mini-descriptor-v1.0",
+          "text": "Organizes the pets (intelligent apps). His daily rounds keep every pet’s status and mood, the roster, the System Map and the profile README up to date, and list what needs Astra.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 2,
+        "repo": "github-goldfish",
+        "icon": "GitHub Goldfish",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-2-v1.0-mini-descriptor-v1.0",
+          "text": "Swims through every public word on a GitHub account and flags document-control, blatant, organizational and systemic errors.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 3,
+        "repo": "data-dealer",
+        "icon": "Chip",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "data-dealer-v1.0-mini-descriptor-v1.0",
+          "text": "Reports the health of Data Dealer, Astra’s large and important data project: its site, data, services and open work, so she sees at a glance what needs her.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 4,
+        "repo": "api-fairy",
+        "icon": "API Fairy",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "api-fairy-ring-v1.0-mini-descriptor-v1.0",
+          "text": "Keeps notes about your API keys, never the keys themselves: where each lives and what uses it, which keys have gone stale, and which new keys to get. Lives in the corner of the Windows desktop.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 5,
+        "repo": "unity-unicorn",
+        "icon": "Unity Unicorn",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-5-v1.0-mini-descriptor-v1.0",
+          "text": "A local Unity and VRChat desk with avatar plans, 26 dated tools, open-arch audits, concise summaries and evidenced execution history.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 6,
+        "repo": "learn-python",
+        "icon": "Python Panther",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-6-v1.0-mini-descriptor-v1.0",
+          "text": "A Python practice desk with short output exercises, answer checks and saved progress alongside the original lessons.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 7,
+        "repo": "vrchat-ai-astra",
+        "icon": "Astra Wisp",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "ai-astra-v1.0-mini-descriptor-v1.0",
+          "text": "Watches the health of VRChat AI Astra, both while she runs and while she is being worked on offline, so problems show up before a session.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 8,
+        "repo": "health-hummy",
+        "icon": "Health Hummy",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-8-v1.0-mini-descriptor-v1.0",
+          "text": "Personal health tracker: weight lifting by body group and sets, cardio, and pole plans. Your data stays on your PC and is never committed.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 9,
+        "repo": "finance-finch",
+        "icon": "Finance Finch",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-9-v1.0-mini-descriptor-v1.0",
+          "text": "Personal finance tracker across your bank, savings and investment accounts. It reads balances and never moves money.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 10,
+        "repo": "mommys",
+        "icon": "Mommy's Mommies",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-10-v1.0-mini-descriptor-v1.0",
+          "text": "A local planning room for Mommy's classes and events, with session details, readiness and notes. Calendar and Discord connections are planned.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 11,
+        "repo": "paper-girl",
+        "icon": "Patty",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "paper-girl-v1.0-mini-descriptor-v1.0",
+          "text": "Runs Paper Girl, a free science discovery desk: real research, publisher explanations and fresh articles.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 12,
+        "repo": "file-master",
+        "icon": "File Master",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-12-v1.0-mini-descriptor-v1.0",
+          "text": "Organizes your files and finds systemic errors. Shows every mass change before making it, with undo.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 13,
+        "repo": "findastra-discord-presence",
+        "icon": "Discord Damsel",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-13-v1.0-mini-descriptor-v1.0",
+          "text": "Opens the installed OpenAI and Anthropic Discord presence controls, with a manual setup checklist.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 14,
+        "repo": "portfolio-puffer",
+        "icon": "Portfolio Puffer",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-14-v1.0-mini-descriptor-v1.0",
+          "text": "Drafts and tracks portfolio updates locally. GitHub and LinkedIn connections are planned; publishing is manual.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 15,
+        "repo": "drum-dog",
+        "icon": "Drum Dog",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-15-v1.0-mini-descriptor-v1.0",
+          "text": "Saves and samples music found online for Ableton Live, and plans releases: the first album, DJ mixes and where each one is hosted. Ableton Live connections are planned.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 16,
+        "repo": "vscode-angel",
+        "icon": "VSCode Angel",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-16-v1.0-mini-descriptor-v1.0",
+          "text": "Records code-review findings and next steps, then exports a Markdown worklist. Editor connections are planned.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 17,
+        "repo": "ghost-protocol",
+        "icon": "Gone Ghost",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "am-i-a-ghost-v1.0-mini-descriptor-v1.0",
+          "text": "Watches the public Ghost Protocol website and checks Astra’s own security against its research: a personal cybersecurity checklist and the steps she has completed.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 18,
+        "repo": "project-parrot",
+        "icon": "Project Parrot",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-18-v1.0-mini-descriptor-v1.0",
+          "text": "Planned: periodically reviews OneNote for new project ideas and reminds Astra to start them.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 19,
+        "repo": "voicemeeter-bug",
+        "icon": "Voicemeeter Bug",
+        "stage": "registered",
+        "mini_descriptor": {
+          "label": "pet-program-19-v1.0-mini-descriptor-v1.0",
+          "text": "A small Windows desktop pet for restarting Voicemeeter's audio engine when audio needs repair. Its browser page explains how to open the installed app.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 20,
+        "repo": "spoonfed",
+        "icon": "Sugarcube",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "spoonfed-v1.0-mini-descriptor-v1.0",
+          "text": "Helps choose where to eat by spinning restaurant choices while respecting locked preferences and keeping favorite spots.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 21,
+        "repo": "claude-bot",
+        "icon": "Claude Bot",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-21-v1.0-mini-descriptor-v1.0",
+          "text": "Claude’s twin of ChatGPT’s BSOD desktop pet, in looks and in function: an orange face on the Windows desktop that shows Claude’s live status in a bubble and opens quick chat.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 22,
+        "repo": "rgbee",
+        "icon": "RGBee",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-22-v1.0-mini-descriptor-v1.0",
+          "text": "Plans and previews lighting scenes for every RGB light in the room: room lights, mouse pad, mouse, PC and keyboard. Sending scenes to the real lights is planned.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 23,
+        "repo": "mine-mole",
+        "icon": "Mine Mole",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-23-v1.0-mini-descriptor-v1.0",
+          "text": "Manages the cryptocurrency mining program on Astra’s PC and checks whether mining is worth the power.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 24,
+        "repo": "mail-snail",
+        "icon": "Mail Snail",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-24-v1.0-mini-descriptor-v1.0",
+          "text": "Organizes your mail: sorts it, cleans it up and deletes what you no longer need, always with your OK first. Connects to no mail account yet.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 25,
+        "repo": "patch-cat",
+        "icon": "Patch Cat",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-25-v1.0-mini-descriptor-v1.0",
+          "text": "Keeps Windows, drivers and apps patched against security holes (its confirmed security role; the rest of its job is Astra’s to choose).",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 26,
+        "repo": "meme-fiend",
+        "icon": "Meme Fiend",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-26-v1.0-mini-descriptor-v1.0",
+          "text": "Archives your favourite memes, especially from Discord, and will run a tool for making your own (not built yet). Your memes stay on your PC.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 27,
+        "repo": "astras-gif-maker",
+        "icon": "Gif Giraffe",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "astra-s-gif-maker-v1.0-mini-descriptor-v1.0",
+          "text": "Makes GIFs in the browser.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 28,
+        "repo": "backup-beaver",
+        "icon": "Backup Beaver",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-28-v1.0-mini-descriptor-v1.0",
+          "text": "Like API Fairy for backups: keeps track of when the last backup ran, where it is, and how to get to it.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 29,
+        "repo": "rift-rabbit",
+        "icon": "Rift Rabbit",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-29-v1.0-mini-descriptor-v1.0",
+          "text": "A white rabbit that preps and tracks VR software and performance.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 30,
+        "repo": "fuzzboi-friend",
+        "icon": "Fuzzboi Friend",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-30-v1.0-mini-descriptor-v1.0",
+          "text": "Watches over the Fuzzbois website, which generates the Fuzzboi art, and shows its health with his mood. Mostly for fun: swap his look any time.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 31,
+        "repo": "wifi-butterfly",
+        "icon": "Wifi Butterfly",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-31-v1.0-mini-descriptor-v1.0",
+          "text": "Watches the radios: unknown Wi-Fi networks and Bluetooth devices nearby (its confirmed security role; the rest of its job is Astra’s to choose).",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 32,
+        "repo": "deck-duck",
+        "icon": "Deck Duck",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-32-v1.0-mini-descriptor-v1.0",
+          "text": "Helps you manage your Elgato Stream Deck: what every button does, on every profile.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 33,
+        "repo": "mesh-moth",
+        "icon": "Mesh Moth",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-33-v1.0-mini-descriptor-v1.0",
+          "text": "Manages Astra’s Meshtastic node: its place in the radio mesh, its health and its messages.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 34,
+        "repo": "raspberry-berry",
+        "icon": "Raspberry Pi Berry",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "raspberry-pi-maker-v1.0-mini-descriptor-v1.0",
+          "text": "Keeps track of Astra’s Raspberry Pi projects and tells her which Pis need a backup or an OS update.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 35,
+        "repo": "chat-rat",
+        "icon": "Chat Rat",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-35-v1.0-mini-descriptor-v1.0",
+          "text": "Not decided yet: Chat Rat’s job is Astra’s to choose.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 36,
+        "repo": "platform-platypus",
+        "icon": "Platform Platypus",
+        "stage": "pipeline",
+        "mini_descriptor": {
+          "label": "pet-program-36-v1.0-mini-descriptor-v1.0",
+          "text": "Keeps Astra's pages working on iPhone, Android, iPad and desktop: shows a page on every device at once, checks it, tracks what each watched site still needs, and compares screenshots from two platforms.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 37,
+        "repo": "pet-program-37",
+        "icon": "Dubstep Gunsmith",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "pet-program-37-v1.0-mini-descriptor-v1.0",
+          "text": "Astra’s catalog site for avatar gun effects and loadouts, made with Codex on 2026-10-12. Its source is only in Codex’s workspace on the PC, not on GitHub yet.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 38,
+        "repo": "pet-program-38",
+        "icon": "Pole Puff",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "pet-program-38-v1.0-mini-descriptor-v1.0",
+          "text": "Manages Astra's Infinite Pole.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 39,
+        "repo": "pet-program-39",
+        "icon": "Procreate Panda",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "pet-program-39-v1.0-mini-descriptor-v1.0",
+          "text": "Not decided yet: Procreate Panda’s job is Astra’s to choose.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 40,
+        "repo": "pet-program-40",
+        "icon": "Skill Scout",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "pet-program-40-v1.0-mini-descriptor-v1.0",
+          "text": "Watches the agent and skill files (AGENTS.md, CLAUDE.md, SKILL.md) for every AI assistant and model, and tracks what changed, who changed it and why.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 41,
+        "repo": "pet-program-41",
+        "icon": "OSC Sealion",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "pet-program-41-v1.0-mini-descriptor-v1.0",
+          "text": "Monitors OSC packets and finds problems when several apps share channels to VRChat, OSCGoesBrrr and VRCFaceTracking.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 42,
+        "repo": "pet-program-42",
+        "icon": "Piranesi Nessi",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "pet-program-42-v1.0-mini-descriptor-v1.0",
+          "text": "Manages Piranesi House.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 43,
+        "repo": "pet-program-43",
+        "icon": "Photo Dodo",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "pet-program-43-v1.0-mini-descriptor-v1.0",
+          "text": "Keeps track of all your saved pictures: where each one is, what it shows, and whether it is backed up.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 44,
+        "repo": "pet-program-44",
+        "icon": "Video Vulture",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "pet-program-44-v1.0-mini-descriptor-v1.0",
+          "text": "Keeps track of all your saved videos, the same way Photo Dodo does for pictures: where each one is, what it shows, and whether it is backed up.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 45,
+        "repo": "pet-program-45",
+        "icon": "Closet Cat",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "pet-program-45-v1.0-mini-descriptor-v1.0",
+          "text": "Organizes your closet (what you own and what goes together) and keeps your favourite places to shop.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 46,
+        "repo": "iron-gates",
+        "icon": "Gatekeeper Goddess",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "iron-gates-v1.0-mini-descriptor-v1.0",
+          "text": "Security and approvals: human-facing approvals and security monitoring. Issues the grants and the short-lived agent keys; never approves her own.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 47,
+        "repo": "pet-program-47",
+        "icon": "Queue Quokka",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-47-v1.0-mini-descriptor-v1.0",
+          "text": "Tasks: watches retries, stalled jobs and agent handoffs.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 48,
+        "repo": "pet-program-48",
+        "icon": "Log Lynx",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-48-v1.0-mini-descriptor-v1.0",
+          "text": "Observability: correlates logs, traces, health and failures.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 49,
+        "repo": "pet-program-49",
+        "icon": "Server Salamander",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-49-v1.0-mini-descriptor-v1.0",
+          "text": "Hosts: home servers, uptime, service health.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 50,
+        "repo": "pet-program-50",
+        "icon": "Docker Dragon",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-50-v1.0-mini-descriptor-v1.0",
+          "text": "Containers: Docker health and authorized management.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 51,
+        "repo": "pet-program-51",
+        "icon": "Test Tortoise",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-51-v1.0-mini-descriptor-v1.0",
+          "text": "Quality: tests and release verification.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 52,
+        "repo": "pet-program-52",
+        "icon": "Token Toucan",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-52-v1.0-mini-descriptor-v1.0",
+          "text": "AI cost: model tokens, budgets and inference usage.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 53,
+        "repo": "pet-program-53",
+        "icon": "Packet Piranha",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-53-v1.0-mini-descriptor-v1.0",
+          "text": "Network: packet loss, DNS, latency, routing.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 54,
+        "repo": "pet-program-54",
+        "icon": "Calendar Crow",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-54-v1.0-mini-descriptor-v1.0",
+          "text": "Calendar: scheduling, conflicts and reminders.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 55,
+        "repo": "pet-program-55",
+        "icon": "Browser Bat",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-55-v1.0-mini-descriptor-v1.0",
+          "text": "Web and marketing operations: website QA and authorized browser work.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 56,
+        "repo": "pet-program-56",
+        "icon": "Data Dragonfly",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-56-v1.0-mini-descriptor-v1.0",
+          "text": "Data engineering: data integrity, schemas, pipelines.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 57,
+        "repo": "pet-program-57",
+        "icon": "Update Urchin",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-57-v1.0-mini-descriptor-v1.0",
+          "text": "Dependency updates: packages, compatibility, rollback prep.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 58,
+        "repo": "pet-program-58",
+        "icon": "Linux Penguin",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-58-v1.0-mini-descriptor-v1.0",
+          "text": "Linux administration, SSH, systemd, packages.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 59,
+        "repo": "pet-program-59",
+        "icon": "Stock Fox",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-59-v1.0-mini-descriptor-v1.0",
+          "text": "Not decided yet: Stock Fox’s job is Astra’s to choose.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 60,
+        "repo": "pet-program-60",
+        "icon": "Passport Pelican",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-60-v1.0-mini-descriptor-v1.0",
+          "text": "Passport/ID metadata, visa research and deadlines, encrypted.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 61,
+        "repo": "pet-program-61",
+        "icon": "Journal Jellyfish",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-61-v1.0-mini-descriptor-v1.0",
+          "text": "Private travel diary and itineraries.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 62,
+        "repo": "pet-program-62",
+        "icon": "Shell Squid",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-62-v1.0-mini-descriptor-v1.0",
+          "text": "Bash, terminal scripting and guarded automation.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 63,
+        "repo": "pet-program-63",
+        "icon": "Kernel Koala",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-63-v1.0-mini-descriptor-v1.0",
+          "text": "Processes, memory, drivers and OS internals.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 64,
+        "repo": "pet-program-64",
+        "icon": "Proxy Axolotl",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-64-v1.0-mini-descriptor-v1.0",
+          "text": "Reverse proxies, TLS and secure private remote access.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 65,
+        "repo": "pet-program-65",
+        "icon": "Cluster Crab",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-65-v1.0-mini-descriptor-v1.0",
+          "text": "Distributed services and orchestration.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 66,
+        "repo": "pet-program-66",
+        "icon": "Storage Stoat",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-66-v1.0-mini-descriptor-v1.0",
+          "text": "NAS, ZFS, snapshots and capacity health.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 67,
+        "repo": "pet-program-67",
+        "icon": "White Hat Weasel",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-67-v1.0-mini-descriptor-v1.0",
+          "text": "Authorized security assessment and remediation.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 68,
+        "repo": "pet-program-68",
+        "icon": "Port Spider",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-68-v1.0-mini-descriptor-v1.0",
+          "text": "Authorized port and service exposure checks.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 69,
+        "repo": "pet-program-69",
+        "icon": "Cipher Owl",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-69-v1.0-mini-descriptor-v1.0",
+          "text": "Encryption, keys, certificates and crypto education.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 70,
+        "repo": "pet-program-70",
+        "icon": "Forensic Ferret",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-70-v1.0-mini-descriptor-v1.0",
+          "text": "Incident timelines and log analysis.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 71,
+        "repo": "pet-program-71",
+        "icon": "Llama Librarian",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-71-v1.0-mini-descriptor-v1.0",
+          "text": "Local model inventory, downloads and compatibility.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 72,
+        "repo": "pet-program-72",
+        "icon": "Inference Iguana",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-72-v1.0-mini-descriptor-v1.0",
+          "text": "Inference benchmarks, GPU/VRAM, latency.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 73,
+        "repo": "pet-program-73",
+        "icon": "Agent Ant",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-73-v1.0-mini-descriptor-v1.0",
+          "text": "Agent experiments and tool-use evaluation.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 74,
+        "repo": "pet-program-74",
+        "icon": "Roaming Raven",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-74-v1.0-mini-descriptor-v1.0",
+          "text": "Travel connectivity, VPN/tailnet and remote access.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 75,
+        "repo": "pet-program-75",
+        "icon": "Cache Coyote",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-75-v1.0-mini-descriptor-v1.0",
+          "text": "Offline-first documents, caches and queued actions.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 76,
+        "repo": "pet-program-76",
+        "icon": "Sync Mink",
+        "stage": "roadmap",
+        "mini_descriptor": {
+          "label": "pet-program-76-v1.0-mini-descriptor-v1.0",
+          "text": "Cross-device sync and conflict resolution.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 77,
+        "repo": "pet-program-77",
+        "icon": "pet-program-77-icon-77",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "pet-program-77-v1.0-mini-descriptor-v1.0",
+          "text": "Triages the vet-clinic: labels tickets, checks them for leaked secrets, and tests offered cures in isolation. Never merges anything.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 78,
+        "repo": "the-police-station",
+        "icon": "Pet Police Officer",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "the-police-station-v1.0-mini-descriptor-v1.0",
+          "text": "Runs The Police Station: watches every write and every agent key use, live; switches a tool, connection or key OFF (never ON); alerts Gatekeeper Goddess and Astra (L4); raises the alarm everywhere on a live break or a past breach.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 79,
+        "repo": "ai-doghouse",
+        "icon": "AI Dashund",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "ai-doghouse-v1.0-mini-descriptor-v1.0",
+          "text": "Keeps vetted research on AI agents, agentic harnesses, security and provenance, applies it to Astra’s PetOS, and writes the research paper.",
+          "reviewed": false
+        }
+      },
+      {
+        "number": 80,
+        "repo": "the-recovery-room",
+        "icon": "Rescue Retriever",
+        "stage": "seed",
+        "mini_descriptor": {
+          "label": "the-recovery-room-v1.0-mini-descriptor-v1.0",
+          "text": "After a shutdown, rebuilds the farm from the verified release, restores clean backups from before the incident, and restarts everything in the safe order.",
+          "reviewed": false
+        }
+      }
+    ]
+  },
+  "registry": {
+    "pets": [
+      {
+        "pet": "Friendly Farmer",
+        "repo": "astras-pet-os"
+      },
+      {
+        "pet": "GitHub Goldfish",
+        "repo": "github-goldfish"
+      },
+      {
+        "pet": "Chip",
+        "repo": "data-dealer"
+      },
+      {
+        "pet": "API Fairy",
+        "repo": "api-fairy"
+      },
+      {
+        "pet": "Unity Unicorn",
+        "repo": "unity-unicorn"
+      },
+      {
+        "pet": "Python Panther",
+        "repo": "learn-python"
+      },
+      {
+        "pet": "Astra Wisp",
+        "repo": "vrchat-ai-astra"
+      },
+      {
+        "pet": "Health Hummy",
+        "repo": "health-hummy"
+      },
+      {
+        "pet": "Finance Finch",
+        "repo": "finance-finch"
+      },
+      {
+        "pet": "Mommy's Mommies",
+        "repo": "mommys"
+      },
+      {
+        "pet": "Patty",
+        "repo": "paper-girl"
+      },
+      {
+        "pet": "File Master",
+        "repo": "file-master"
+      },
+      {
+        "pet": "Discord Damsel",
+        "repo": "findastra-discord-presence"
+      },
+      {
+        "pet": "Portfolio Puffer",
+        "repo": "portfolio-puffer"
+      },
+      {
+        "pet": "Drum Dog",
+        "repo": "drum-dog"
+      },
+      {
+        "pet": "VSCode Angel",
+        "repo": "vscode-angel"
+      },
+      {
+        "pet": "Gone Ghost",
+        "repo": "ghost-protocol"
+      },
+      {
+        "pet": "Project Parrot",
+        "repo": "project-parrot"
+      },
+      {
+        "pet": "Voicemeeter Bug",
+        "repo": "voicemeeter-bug"
+      }
+    ],
+    "pipeline": [
+      {
+        "pet": "Sugarcube",
+        "repo": "spoonfed"
+      },
+      {
+        "pet": "Claude Bot",
+        "repo": "claude-bot"
+      },
+      {
+        "pet": "RGBee",
+        "repo": "rgbee"
+      },
+      {
+        "pet": "Mine Mole",
+        "repo": "mine-mole"
+      },
+      {
+        "pet": "Mail Snail",
+        "repo": "mail-snail"
+      },
+      {
+        "pet": "Patch Cat",
+        "repo": "patch-cat"
+      },
+      {
+        "pet": "Meme Fiend",
+        "repo": "meme-fiend"
+      },
+      {
+        "pet": "Gif Giraffe",
+        "repo": "astras-gif-maker"
+      },
+      {
+        "pet": "Backup Beaver",
+        "repo": "backup-beaver"
+      },
+      {
+        "pet": "Rift Rabbit",
+        "repo": "rift-rabbit"
+      },
+      {
+        "pet": "Fuzzboi Friend",
+        "repo": "fuzzboi-friend"
+      },
+      {
+        "pet": "Wifi Butterfly",
+        "repo": "wifi-butterfly"
+      },
+      {
+        "pet": "Deck Duck",
+        "repo": "deck-duck"
+      },
+      {
+        "pet": "Mesh Moth",
+        "repo": "mesh-moth"
+      },
+      {
+        "pet": "Raspberry Pi Berry",
+        "repo": "raspberry-berry"
+      },
+      {
+        "pet": "Platform Platypus",
+        "repo": "platform-platypus"
+      }
+    ],
+    "seeds": {
+      "pets": [
+        {
+          "pet": "Pole Puff",
+          "repo": null
+        },
+        {
+          "pet": "Procreate Panda",
+          "repo": null
+        },
+        {
+          "pet": "Skill Scout",
+          "repo": null
+        },
+        {
+          "pet": "OSC Sealion",
+          "repo": null
+        },
+        {
+          "pet": "Piranesi Nessi",
+          "repo": null
+        },
+        {
+          "pet": "Photo Dodo",
+          "repo": null
+        },
+        {
+          "pet": "Video Vulture",
+          "repo": null
+        },
+        {
+          "pet": "Closet Cat",
+          "repo": null
+        },
+        {
+          "pet": "Pet Police Officer",
+          "repo": null
+        },
+        {
+          "pet": "pet-program-77-icon-77",
+          "repo": null
+        },
+        {
+          "pet": "Rescue Retriever",
+          "repo": null
+        }
+      ]
+    }
+  },
+  "repos": [
+    {
+      "name": "ai-doghouse"
+    },
+    {
+      "name": "anthropic-discord-presence"
+    },
+    {
+      "name": "api-fairy"
+    },
+    {
+      "name": "astras-gif-maker"
+    },
+    {
+      "name": "astras-infinite-pole"
+    },
+    {
+      "name": "astras-pet-os"
+    },
+    {
+      "name": "backup-beaver"
+    },
+    {
+      "name": "chat-rat"
+    },
+    {
+      "name": "claude-bot"
+    },
+    {
+      "name": "data-dealer"
+    },
+    {
+      "name": "deck-duck"
+    },
+    {
+      "name": "detour-into-vr"
+    },
+    {
+      "name": "drum-dog"
+    },
+    {
+      "name": "file-master"
+    },
+    {
+      "name": "finance-finch"
+    },
+    {
+      "name": "findastra"
+    },
+    {
+      "name": "findastra-discord-presence"
+    },
+    {
+      "name": "fuzzboi-friend"
+    },
+    {
+      "name": "fuzzbois"
+    },
+    {
+      "name": "ghost-protocol"
+    },
+    {
+      "name": "github-goldfish"
+    },
+    {
+      "name": "health-hummy"
+    },
+    {
+      "name": "iron-gates"
+    },
+    {
+      "name": "learn-python"
+    },
+    {
+      "name": "mail-snail"
+    },
+    {
+      "name": "meme-fiend"
+    },
+    {
+      "name": "mesh-moth"
+    },
+    {
+      "name": "mine-mole"
+    },
+    {
+      "name": "mommys"
+    },
+    {
+      "name": "mommys-website"
+    },
+    {
+      "name": "openai-discord-presence"
+    },
+    {
+      "name": "paper-girl"
+    },
+    {
+      "name": "patch-cat"
+    },
+    {
+      "name": "pet-program-37"
+    },
+    {
+      "name": "pet-program-38"
+    },
+    {
+      "name": "pet-program-39"
+    },
+    {
+      "name": "pet-program-40"
+    },
+    {
+      "name": "pet-program-41"
+    },
+    {
+      "name": "pet-program-42"
+    },
+    {
+      "name": "pet-program-43"
+    },
+    {
+      "name": "pet-program-44"
+    },
+    {
+      "name": "pet-program-47"
+    },
+    {
+      "name": "pet-program-48"
+    },
+    {
+      "name": "pet-program-49"
+    },
+    {
+      "name": "pet-program-50"
+    },
+    {
+      "name": "pet-program-51"
+    },
+    {
+      "name": "pet-program-52"
+    },
+    {
+      "name": "pet-program-53"
+    },
+    {
+      "name": "pet-program-54"
+    },
+    {
+      "name": "pet-program-55"
+    },
+    {
+      "name": "pet-program-56"
+    },
+    {
+      "name": "pet-program-57"
+    },
+    {
+      "name": "pet-program-58"
+    },
+    {
+      "name": "pet-program-59"
+    },
+    {
+      "name": "pet-program-60"
+    },
+    {
+      "name": "pet-program-61"
+    },
+    {
+      "name": "pet-program-62"
+    },
+    {
+      "name": "pet-program-63"
+    },
+    {
+      "name": "pet-program-64"
+    },
+    {
+      "name": "pet-program-65"
+    },
+    {
+      "name": "pet-program-66"
+    },
+    {
+      "name": "pet-program-67"
+    },
+    {
+      "name": "pet-program-68"
+    },
+    {
+      "name": "pet-program-69"
+    },
+    {
+      "name": "pet-program-70"
+    },
+    {
+      "name": "pet-program-71"
+    },
+    {
+      "name": "pet-program-72"
+    },
+    {
+      "name": "pet-program-73"
+    },
+    {
+      "name": "pet-program-74"
+    },
+    {
+      "name": "pet-program-75"
+    },
+    {
+      "name": "pet-program-76"
+    },
+    {
+      "name": "pet-program-77"
+    },
+    {
+      "name": "piranesi-house"
+    },
+    {
+      "name": "platform-platypus"
+    },
+    {
+      "name": "portfolio-puffer"
+    },
+    {
+      "name": "project-parrot"
+    },
+    {
+      "name": "raspberry-berry"
+    },
+    {
+      "name": "rgbee"
+    },
+    {
+      "name": "rift-rabbit"
+    },
+    {
+      "name": "role-fairy"
+    },
+    {
+      "name": "spoonfed"
+    },
+    {
+      "name": "startup-star"
+    },
+    {
+      "name": "the-cats-closet"
+    },
+    {
+      "name": "the-kennel"
+    },
+    {
+      "name": "the-police-station"
+    },
+    {
+      "name": "the-recovery-room"
+    },
+    {
+      "name": "the-shed"
+    },
+    {
+      "name": "unity-unicorn"
+    },
+    {
+      "name": "vet-clinic"
+    },
+    {
+      "name": "voicemeeter-bug"
+    },
+    {
+      "name": "vrchat-ai-astra"
+    },
+    {
+      "name": "vscode-angel"
+    },
+    {
+      "name": "wifi-butterfly"
+    }
+  ],
+  "brokenReadme": "1. [astras-pet-os](https://github.com/findastra/astras-pet-os) -- Friendly Farmer · The Farm: organizes the pets (intelligent apps). His daily rounds keep every pet’s status and mood, the roster, the System Map and the profile README up to date, and list what needs Astra\n2. [github-goldfish](https://github.com/findastra/github-goldfish) -- GitHub Goldfish · swims through every public word on a GitHub account and flags document-control, blatant, organizational and systemic errors\n3. [data-dealer](https://github.com/findastra/data-dealer) -- Chip · Data Dealer: reports the health of Data Dealer, Astra’s large and important data project: its site, data, services and open work, so she sees at a glance what needs her\n4. [api-fairy](https://github.com/findastra/api-fairy) -- API Fairy · API Fairy Ring: keeps notes about your API keys, never the keys themselves: where each lives and what uses it, which keys have gone stale, and which new keys to get. Lives in the corner of the Windows desktop\n5. [unity-unicorn](https://github.com/findastra/unity-unicorn) -- Unity Unicorn · a local Unity and VRChat desk with avatar plans, 26 dated tools, open-arch audits, concise summaries and evidenced execution history\n6. [learn-python](https://github.com/findastra/learn-python) -- Python Panther · a Python practice desk with short output exercises, answer checks and saved progress alongside the original lessons\n7. [vrchat-ai-astra](https://github.com/findastra/vrchat-ai-astra) -- Astra Wisp · AI Astra: watches the health of VRChat AI Astra, both while she runs and while she is being worked on offline, so problems show up before a session\n8. [health-hummy](https://github.com/findastra/health-hummy) -- Health Hummy · personal health tracker: weight lifting by body group and sets, cardio, and pole plans. Your data stays on your PC and is never committed\n9. [finance-finch](https://github.com/findastra/finance-finch) -- Finance Finch · personal finance tracker across your bank, savings and investment accounts. It reads balances and never moves money\n10. [mommys](https://github.com/findastra/mommys) -- Mommy's Mommies · a local planning room for Mommy's classes and events, with session details, readiness and notes. Calendar and Discord connections are planned\n11. [paper-girl](https://github.com/findastra/paper-girl) -- Patty · Paper Girl: runs Paper Girl, a free science discovery desk: real research, publisher explanations and fresh articles\n12. [file-master](https://github.com/findastra/file-master) -- File Master · organizes your files and finds systemic errors. Shows every mass change before making it, with undo\n13. [findastra-discord-presence](https://github.com/findastra/findastra-discord-presence) -- Discord Damsel · opens the installed OpenAI and Anthropic Discord presence controls, with a manual setup checklist\n14. [portfolio-puffer](https://github.com/findastra/portfolio-puffer) -- Portfolio Puffer · drafts and tracks portfolio updates locally. GitHub and LinkedIn connections are planned; publishing is manual\n15. [drum-dog](https://github.com/findastra/drum-dog) -- Drum Dog · saves and samples music found online for Ableton Live, and plans releases: the first album, DJ mixes and where each one is hosted. Ableton Live connections are planned\n16. [vscode-angel](https://github.com/findastra/vscode-angel) -- VSCode Angel · records code-review findings and next steps, then exports a Markdown worklist. Editor connections are planned\n17. [ghost-protocol](https://github.com/findastra/ghost-protocol) -- Gone Ghost · Am I a Ghost?: watches the public Ghost Protocol website and checks Astra’s own security against its research: a personal cybersecurity checklist and the steps she has completed\n18. [project-parrot](https://github.com/findastra/project-parrot) -- Project Parrot · planned: periodically reviews OneNote for new project ideas and reminds Astra to start them\n19. [voicemeeter-bug](https://github.com/findastra/voicemeeter-bug) -- Voicemeeter Bug · a small Windows desktop pet for restarting Voicemeeter's audio engine when audio needs repair. Its browser page explains how to open the installed app\n20. [spoonfed](https://github.com/findastra/spoonfed) -- Sugarcube · Spoonfed: helps choose where to eat by spinning restaurant choices while respecting locked preferences and keeping favorite spots\n21. [claude-bot](https://github.com/findastra/claude-bot) -- Claude Bot · Claude’s twin of ChatGPT’s BSOD desktop pet, in looks and in function: an orange face on the Windows desktop that shows Claude’s live status in a bubble and opens quick chat\n22. [rgbee](https://github.com/findastra/rgbee) -- RGBee · plans and previews lighting scenes for every RGB light in the room: room lights, mouse pad, mouse, PC and keyboard. Sending scenes to the real lights is planned\n23. [mine-mole](https://github.com/findastra/mine-mole) -- Mine Mole · manages the cryptocurrency mining program on Astra’s PC and checks whether mining is worth the power\n24. [mail-snail](https://github.com/findastra/mail-snail) -- Mail Snail · organizes your mail: sorts it, cleans it up and deletes what you no longer need, always with your OK first. Connects to no mail account yet\n25. [patch-cat](https://github.com/findastra/patch-cat) -- Patch Cat · keeps Windows, drivers and apps patched against security holes (its confirmed security role; the rest of its job is Astra’s to choose)\n26. [meme-fiend](https://github.com/findastra/meme-fiend) -- Meme Fiend · archives your favourite memes, especially from Discord, and will run a tool for making your own (not built yet). Your memes stay on your PC\n27. [astras-gif-maker](https://github.com/findastra/astras-gif-maker) -- Gif Giraffe · Astra's GIF Maker: makes GIFs in the browser\n28. [backup-beaver](https://github.com/findastra/backup-beaver) -- Backup Beaver · like API Fairy for backups: keeps track of when the last backup ran, where it is, and how to get to it\n29. [rift-rabbit](https://github.com/findastra/rift-rabbit) -- Rift Rabbit · a white rabbit that preps and tracks VR software and performance\n30. [fuzzboi-friend](https://github.com/findastra/fuzzboi-friend) -- Fuzzboi Friend · watches over the Fuzzbois website, which generates the Fuzzboi art, and shows its health with his mood. Mostly for fun: swap his look any time\n31. [wifi-butterfly](https://github.com/findastra/wifi-butterfly) -- Wifi Butterfly · watches the radios: unknown Wi-Fi networks and Bluetooth devices nearby (its confirmed security role; the rest of its job is Astra’s to choose)\n32. [deck-duck](https://github.com/findastra/deck-duck) -- Deck Duck · helps you manage your Elgato Stream Deck: what every button does, on every profile\n33. [mesh-moth](https://github.com/findastra/mesh-moth) -- Mesh Moth · manages Astra’s Meshtastic node: its place in the radio mesh, its health and its messages\n34. [raspberry-berry](https://github.com/findastra/raspberry-berry) -- Raspberry Pi Berry · Raspberry Pi Maker: keeps track of Astra’s Raspberry Pi projects and tells her which Pis need a backup or an OS update\n35. [chat-rat](https://github.com/findastra/chat-rat) -- Chat Rat · not decided yet: Chat Rat’s job is Astra’s to choose\n36. [platform-platypus](https://github.com/findastra/platform-platypus) -- Platform Platypus · keeps Astra's pages working on iPhone, Android, iPad and desktop: shows a page on every device at once, checks it, tracks what each watched site still needs, and compares screenshots from two platforms\n37. [pet-program-37](https://github.com/findastra/pet-program-37) -- Dubstep Gunsmith · Astra’s catalog site for avatar gun effects and loadouts, made with Codex on 2026-10-12. Its source is only in Codex’s workspace on the PC, not on GitHub yet\n38. [pet-program-38](https://github.com/findastra/pet-program-38) -- Pole Puff · manages Astra's Infinite Pole\n39. [pet-program-39](https://github.com/findastra/pet-program-39) -- Procreate Panda · not decided yet: Procreate Panda’s job is Astra’s to choose\n40. [pet-program-40](https://github.com/findastra/pet-program-40) -- Skill Scout · watches the agent and skill files (AGENTS.md, CLAUDE.md, SKILL.md) for every AI assistant and model, and tracks what changed, who changed it and why\n41. [pet-program-41](https://github.com/findastra/pet-program-41) -- OSC Sealion · monitors OSC packets and finds problems when several apps share channels to VRChat, OSCGoesBrrr and VRCFaceTracking\n42. [pet-program-42](https://github.com/findastra/pet-program-42) -- Piranesi Nessi · manages Piranesi House\n43. [pet-program-43](https://github.com/findastra/pet-program-43) -- Photo Dodo · keeps track of all your saved pictures: where each one is, what it shows, and whether it is backed up\n44. [pet-program-44](https://github.com/findastra/pet-program-44) -- Video Vulture · keeps track of all your saved videos, the same way Photo Dodo does for pictures: where each one is, what it shows, and whether it is backed up\n45. [iron-gates](https://github.com/findastra/iron-gates) -- Gatekeeper Goddess · Iron Gates: security and approvals: human-facing approvals and security monitoring. Issues the grants and the short-lived agent keys; never approves her own\n46. [pet-program-47](https://github.com/findastra/pet-program-47) -- Queue Quokka · tasks: watches retries, stalled jobs and agent handoffs\n47. [pet-program-48](https://github.com/findastra/pet-program-48) -- Log Lynx · observability: correlates logs, traces, health and failures\n48. [pet-program-49](https://github.com/findastra/pet-program-49) -- Server Salamander · hosts: home servers, uptime, service health\n49. [pet-program-50](https://github.com/findastra/pet-program-50) -- Docker Dragon · containers: Docker health and authorized management\n50. [pet-program-51](https://github.com/findastra/pet-program-51) -- Test Tortoise · quality: tests and release verification\n51. [pet-program-52](https://github.com/findastra/pet-program-52) -- Token Toucan · AI cost: model tokens, budgets and inference usage\n52. [pet-program-53](https://github.com/findastra/pet-program-53) -- Packet Piranha · network: packet loss, DNS, latency, routing\n53. [pet-program-54](https://github.com/findastra/pet-program-54) -- Calendar Crow · calendar: scheduling, conflicts and reminders\n54. [pet-program-55](https://github.com/findastra/pet-program-55) -- Browser Bat · web and marketing operations: website QA and authorized browser work\n55. [pet-program-56](https://github.com/findastra/pet-program-56) -- Data Dragonfly · data engineering: data integrity, schemas, pipelines\n56. [pet-program-57](https://github.com/findastra/pet-program-57) -- Update Urchin · dependency updates: packages, compatibility, rollback prep\n57. [pet-program-58](https://github.com/findastra/pet-program-58) -- Linux Penguin · linux administration, SSH, systemd, packages\n58. [pet-program-59](https://github.com/findastra/pet-program-59) -- Stock Fox · not decided yet: Stock Fox’s job is Astra’s to choose\n59. [pet-program-60](https://github.com/findastra/pet-program-60) -- Passport Pelican · passport/ID metadata, visa research and deadlines, encrypted\n60. [pet-program-61](https://github.com/findastra/pet-program-61) -- Journal Jellyfish · private travel diary and itineraries\n61. [pet-program-62](https://github.com/findastra/pet-program-62) -- Shell Squid · bash, terminal scripting and guarded automation\n62. [pet-program-63](https://github.com/findastra/pet-program-63) -- Kernel Koala · processes, memory, drivers and OS internals\n63. [pet-program-64](https://github.com/findastra/pet-program-64) -- Proxy Axolotl · reverse proxies, TLS and secure private remote access\n64. [pet-program-65](https://github.com/findastra/pet-program-65) -- Cluster Crab · distributed services and orchestration\n65. [pet-program-66](https://github.com/findastra/pet-program-66) -- Storage Stoat · NAS, ZFS, snapshots and capacity health\n66. [pet-program-67](https://github.com/findastra/pet-program-67) -- White Hat Weasel · authorized security assessment and remediation\n67. [pet-program-68](https://github.com/findastra/pet-program-68) -- Port Spider · authorized port and service exposure checks\n68. [pet-program-69](https://github.com/findastra/pet-program-69) -- Cipher Owl · encryption, keys, certificates and crypto education\n69. [pet-program-70](https://github.com/findastra/pet-program-70) -- Forensic Ferret · incident timelines and log analysis\n70. [pet-program-71](https://github.com/findastra/pet-program-71) -- Llama Librarian · local model inventory, downloads and compatibility\n71. [pet-program-72](https://github.com/findastra/pet-program-72) -- Inference Iguana · inference benchmarks, GPU/VRAM, latency\n72. [pet-program-73](https://github.com/findastra/pet-program-73) -- Agent Ant · agent experiments and tool-use evaluation\n73. [pet-program-74](https://github.com/findastra/pet-program-74) -- Roaming Raven · travel connectivity, VPN/tailnet and remote access\n74. [pet-program-75](https://github.com/findastra/pet-program-75) -- Cache Coyote · offline-first documents, caches and queued actions\n75. [pet-program-76](https://github.com/findastra/pet-program-76) -- Sync Mink · cross-device sync and conflict resolution\n76. [pet-program-77](https://github.com/findastra/pet-program-77) -- pet-program-77-icon-77 · triages the vet-clinic: labels tickets, checks them for leaked secrets, and tests offered cures in isolation. Never merges anything\n77. [the-police-station](https://github.com/findastra/the-police-station) -- Pet Police Officer · The Police Station: runs The Police Station: watches every write and every agent key use, live; switches a tool, connection or key OFF (never ON); alerts Gatekeeper Goddess and Astra (L4); raises the alarm everywhere on a live break or a past breach\n78. [ai-doghouse](https://github.com/findastra/ai-doghouse) -- AI Dashund · AI Doghouse: keeps vetted research on AI agents, agentic harnesses, security and provenance, applies it to Astra’s PetOS, and writes the research paper\n79. [the-recovery-room](https://github.com/findastra/the-recovery-room) -- Rescue Retriever · The Recovery Room: after a shutdown, rebuilds the farm from the verified release, restores clean backups from before the incident, and restarts everything in the safe order\nSeeds, named and waiting to hatch: Pole Puff · manages Astra's Infinite Pole; Piranesi Nessi · manages Piranesi House; OSC Sealion · manages OSCGoesBrrr and VRCFT face tracking; Platform Platypus · checks a page on iPhone, Android, iPad and desktop at once; Procreate Panda and Skill Scout · jobs to be decided"
+}
