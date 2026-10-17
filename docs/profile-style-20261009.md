@@ -23,7 +23,7 @@
 - No sparkle dividers between sections.
 - Each repo: ``- [`repo`](https://github.com/findastra/repo) -- description``. The separator is `--`. Never swap in ✧, ✦ or other decoration.
 - Private repos are not linked: ``- `repo` *(private)* -- description``.
-- **Pet apps** are a numbered running list by pet program number (`pet-programs.json` in astras-pet-os), pet first: ``N. **Pet** · *Home* · [`repo`](link) -- what the pet does [status]`` (see Pet roster below). Every pet app belongs in this list, not in the other sections.
+- **Pet apps** are a numbered running list by pet program number (`pet-programs.json` in astras-pet-os), pet first: ``N. **Pet** -- what the pet does [status]``, with the home, repo and tools as sub-bullets beneath (see Pet roster below). Every pet app belongs in this list, not in the other sections.
 
 ## In general
 - Only add decoration Astra asked for. Ask before changing the look.
@@ -31,9 +31,16 @@
 ## Pet roster (Astra's corrections, 2026-10-16)
 *Checked first in every audit and pinned to the top of the report as `(pet roster)`. Recorded with Claude Opus 5.5 (`claude-opus-5-5`).*
 
-- Line shape: ``N. **Pet** · *Home* · [`repo`](link) -- what the pet does [status]``. Changed by Astra on 2026-10-16: **the pet name is first in every listing**, then its home, then its repo. A line that starts with the repo is flagged.
+- Line shape (Astra, 2026-10-16): the pet name and what it does, then the home (pet program), repo and tools as sub-bullets:
+  ```
+  1. **Friendly Farmer** -- organizes the pets ...
+     - [`the-farm`](page) -- *The Farm*, the pet program
+     - [`astras-pet-os`](https://github.com/findastra/astras-pet-os) -- Astra's PetOS home repo
+     - [`the-kennel`](https://github.com/findastra/the-kennel) -- ...
+  ```
+  A line that starts with the repo is flagged; a line with the home and repo still on it is a note. A pet with no home sub-bullet is flagged.
 - **Pet first, home second.** A place (Kingdom, Station, Den, Casino, site…) in the pet slot means they are switched: Astra fixed `File Kingdom · File Master` to `File Master · File Kingdom`, and `Dubstep Gunsmith` (a catalog site) is a home waiting for its pet.
-- **Every pet has a home.** No home is reported once, as a list. With no home yet, the line is ``N. **Pet** · [`repo`](link) -- what the pet does``.
+- **Every pet has a home.** No home is reported once, as a list. With no home yet, the first sub-bullet is ``- `pet-program-N` -- pet program, not named yet``.
 - **No placeholder names** (`pet-program-77-icon-77`).
 - **Status is not a home or a job.** `planned:` / `not decided yet:` in the home slot, or "… are planned" in the job, gets rewritten as what the pet does; status goes in `[brackets]` at the end (`[not connected to any mail account yet]`).
 - **A category is not a home** (`tasks:`, `AI cost:`, `network:`).
