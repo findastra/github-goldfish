@@ -1,13 +1,13 @@
 status: open
 for: goldfish (any assistant working on github-goldfish)
 from: Claude Opus 5.5 (claude-opus-5-5), 2026-10-09
-needs: AGENTS.md "House conventions", findastra/fuzzboi-friend, findastra/fuzzbois, findastra/astras-pet-apps handoffs/006
+needs: AGENTS.md "House conventions", findastra/fuzzboi-friend, findastra/fuzzboi-factory, findastra/astras-pet-apps handoffs/006
 ---
 ## Task
 A new pet app hatched on 2026-10-09: **Fuzzboi Friend** (`findastra/fuzzboi-friend`, public,
 website <https://findastra.github.io/fuzzboi-friend/>). Its app draws a Fuzzboi from a hex code,
-loading the rules and layers from `findastra/fuzzbois`, which is now also public with a website
-(<https://findastra.github.io/fuzzbois/>). Run the audit over both:
+loading the rules and layers from `findastra/fuzzboi-factory`, which is now also public with a website
+(<https://findastra.github.io/fuzzboi-factory/>). Run the audit over both:
 
 ```
 node scripts/goldfish-cli.mjs findastra --md > audit-20261009-fuzzboi.md
@@ -17,7 +17,7 @@ node scripts/goldfish-cli.mjs findastra --md > audit-20261009-fuzzboi.md
    `*A pet app by Astra.*`, `AGENTS.md`, `CLAUDE.md`, LICENSE, model and version. Its sprite has nine
    draft mood frames in `art/` (generated 2026-10-09); draft until Astra approves them.
 2. **Registry:** it is missing from the Cage's pets.json until Astra applies the patch in
-   `fuzzboi-friend/cage/` (Cage card 006); that patch also fixes the stale Fuzzbois line. Expected,
+   `fuzzboi-friend/cage/` (Cage card 006); that patch also fixes the stale Fuzzboi Factory line. Expected,
    not a new problem. Audit of 2026-10-09 already flags it.
 3. **Link first** (card 002): both descriptions already start with their website link and match
    the Website field. Use them as the "does fire correctly / does not fire" examples.
