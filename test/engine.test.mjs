@@ -446,8 +446,12 @@ const rost = (fs) => fs.filter((f) => f.repo === '(pet roster)');
 
 test('roster: clean pet list raises nothing and stays quiet', () => {
   const body = [
-    "1. **Friendly Farmer** · *The Farm* · [`astras-pet-os`](https://github.com/me/astras-pet-os) -- organizes the pets and lists what needs Astra's (L4) attention.",
-    '2. **GitHub Goldfish** · *GitHub Aquarium* · [`github-goldfish`](https://github.com/me/github-goldfish) -- swims through every public word on the account. [not connected yet]',
+    "1. **Friendly Farmer** -- organizes the pets and lists what needs Astra's (L4) attention.",
+    '   - `the-farm` -- *The Farm*, the pet program',
+    '   - [`astras-pet-os`](https://github.com/me/astras-pet-os) -- the home repo',
+    '2. **GitHub Goldfish** -- swims through every public word on the account. [not connected yet]',
+    '   - `github-aquarium` -- *GitHub Aquarium*, the pet program',
+    '   - [`github-goldfish`](https://github.com/me/github-goldfish) -- its repo',
   ].join('\n');
   const fs = run([prof(body), repo('astras-pet-os'), repo('github-goldfish')]);
   assert.equal(rost(fs).length, 0);
@@ -462,6 +466,26 @@ test('roster: pet first (Astra, 2026-10-16); a repo-first line is flagged, and p
   assert.ok(has(run([prof('1. **Chat Rat** · [`a`](https://github.com/me/a) -- saves your chats'), repo('a')]), /no home: #1 Chat Rat/));
   const priv = run([prof('1. **Chip** · *Data Dealer* · `data-dealer` *(private)* -- reports the health of Data Dealer.'), repo('me')]);
   assert.equal(rost(priv).length, 0, 'a private pet-first line with a home is clean');
+});
+
+test('roster: the pet line holds the pet and its job; home, repo and tools are sub-bullets (Astra, 2026-10-16)', () => {
+  const body = [
+    "1. **Friendly Farmer** -- organizes the pets and lists what needs Astra's (L4) attention",
+    '   - [`the-farm`](https://me.github.io/astras-pet-os/farm.html) -- *The Farm*, the pet program',
+    "   - [`astras-pet-os`](https://github.com/me/astras-pet-os) -- Astra's PetOS home repo",
+    '   - [`the-kennel`](https://github.com/me/the-kennel) -- pets made by other people',
+    '2. **Chip** -- reports the health of Data Dealer',
+    '   - `data-dealer` -- *Data Dealer*, the pet program',
+    "   - `data-dealer` *(private)* -- Chip's repo",
+  ].join('\n');
+  const fs = run([prof(body), repo('astras-pet-os'), repo('the-kennel')]);
+  assert.equal(rost(fs).length, 0, 'the new shape is clean');
+  const unnamed = run([prof('3. **Chat Rat** -- saves your chats\n   - `pet-program-3` -- pet program, not named yet\n   - [`chat-rat`](https://github.com/me/chat-rat) -- Chat Rat\'s repo'), repo('chat-rat')]);
+  assert.ok(has(unnamed, /no home: #3 Chat Rat/), 'an unnamed home is still reported');
+  const both = run([prof('4. **Sugarcube** -- helps choose where to eat\n   - [`spoonfed`](https://github.com/me/spoonfed) -- *Spoonfed*, the pet program and its repo'), repo('spoonfed')]);
+  assert.equal(rost(both).length, 0, 'one sub-bullet can be the home and the repo');
+  assert.ok(has(run([prof('3. **Chat Rat** -- saves your chats')]), /no home sub-bullet beneath it/));
+  assert.ok(has(run([prof('1. **Chat Rat** · *Chat Nest* · [`a`](https://github.com/me/a) -- saves your chats'), repo('a')]), /home and repo sit on the pet line/), 'the earlier one-line shape is a quiet note');
 });
 
 test('roster: placeholder name, swapped pet and home, status and category in the home slot', () => {

@@ -509,6 +509,11 @@ const Goldfish = (() => {
   const PET_LINE = /^(\d+)\.\s+(?:\[`([^`]+)`\]\([^)]*\)|`([^`]+)`\s+\*\(private\)\*)\s+--\s+\*\*([^*]+)\*\*\s*(?:·\s*)?(.*)$/;
   // Pet first (Astra, 2026-10-16): N. **Pet** · *Home* · [`repo`](link) -- what the pet does [status]. Home is optional.
   const PET_FIRST_LINE = /^(\d+)\.\s+\*\*([^*]+)\*\*\s*·\s*(?:\*([^*]+)\*\s*·\s*)?(?:\[`([^`]+)`\]\([^)]*\)|`([^`]+)`\s+\*\(private\)\*)\s+--\s+(.*)$/;
+  // Pet and job, nothing else (Astra, 2026-10-16): N. **Pet** -- what it does [status]. Beneath it, as sub-bullets:
+  // its home first (- [`the-farm`](page) -- *The Farm*, the pet program), then its repo, then its tools.
+  const PET_JOB_LINE = /^(\d+)\.\s+\*\*([^*]+)\*\*\s+--\s+(.*)$/;
+  const HOME_SUB = /^\s+[-*]\s+(?:\[`[^`]+`\]\([^)]*\)|`[^`]+`(?:\s+\*\(private\)\*)?)\s+--\s+(?:\*([^*]+)\*, the pet program|pet program(?: and its repo)?, not named yet)/;
+  const REPO_SUB = /^\s+[-*]\s+(?:\[`([^`]+)`\]\([^)]*\)|`([^`]+)`\s+\*\(private\)\*)\s+--\s+/;
   const PLACE_WORDS = /\b(kingdom|house|station|room|den|nest|ring|farm|casino|gates|doghouse|shop|hive|tavern|lair|mold|perch|jungle|iceberg|tower|clinic|desk|hq|press|closet|kennel|shed|aquarium|cage|barn|garden|pond|burrow|library|site|website)$/i;
   // A job phrase before a colon ("organizes your mail: …") is not a category label.
   const ROSTER_JOB = /^(organizes|watches|keeps|tracks|manages|helps|makes|runs|plans|saves|records|opens|drafts|reports|swims|monitors|checks|archives|hosts data)\b|(tracker|desk|app|pet)$/i;
@@ -516,14 +521,26 @@ const Goldfish = (() => {
     const add = (cat, sev, where, msg, extra = {}) => sink.add(cat, sev, ROSTER, where, msg, { top: true, ...extra });
     const pets = [];
     const noHome = [];
-    txt.split('\n').forEach((ln, i) => {
+    const rows = txt.split('\n');
+    rows.forEach((ln, i) => {
       const line = i + 1;
       if (/\[\?|\[suggest\b|\bsuggest (?:one|else)\?/i.test(ln)) add('Blatant', 'error', 'README.md', 'An editing marker ([? …] or "suggest …?") is published on the profile.', { line, evidence: clip(ln.trim(), 90), fix: 'Decide the wording, or take the marker out.' });
-      const pf = PET_FIRST_LINE.exec(ln);
-      const m = pf ? null : PET_LINE.exec(ln);
-      if (!m && !pf) return;
+      const pj = PET_JOB_LINE.exec(ln);
+      const pf = pj ? null : PET_FIRST_LINE.exec(ln);
+      const m = pj || pf ? null : PET_LINE.exec(ln);
+      if (!m && !pf && !pj) return;
       let num, repo, pet, rest, home = null;
-      if (pf) { num = +pf[1]; pet = pf[2].trim(); home = pf[3] ? pf[3].trim() : null; repo = pf[4] || pf[5]; rest = pf[6].trim(); }
+      if (pj) {
+        num = +pj[1]; pet = pj[2].trim(); rest = pj[3].trim(); repo = null;
+        const subs = [];
+        for (let k = i + 1; k < rows.length && /^\s+[-*]\s/.test(rows[k]); k++) subs.push(rows[k]);
+        const h = subs.length ? HOME_SUB.exec(subs[0]) : null;
+        if (h) home = h[1] ? h[1].trim() : null;
+        // One sub-bullet can be both the home and the repo when they share a name (spoonfed).
+        const r = subs.slice(h && !/and its repo/.test(subs[0]) ? 1 : 0).map((x) => REPO_SUB.exec(x)).find(Boolean);
+        if (r) repo = r[1] || r[2];
+        if (!h) add('Organizational', 'warn', `README.md #${num} ${pet}`, `Pet #${num} has no home sub-bullet beneath it.`, { line, fix: 'First sub-bullet: - [`home-name`](page) -- *Home*, the pet program (or `pet-program-N` -- pet program, not named yet).' });
+      } else if (pf) { num = +pf[1]; pet = pf[2].trim(); home = pf[3] ? pf[3].trim() : null; repo = pf[4] || pf[5]; rest = pf[6].trim(); }
       else {
         num = +m[1]; repo = m[2] || m[3]; pet = m[4].trim(); rest = m[5].trim();
         const hm = /^\*([^*]+)\*\s*:\s*(.*)$/.exec(rest);
@@ -531,11 +548,12 @@ const Goldfish = (() => {
       }
       pets.push({ num, repo, pet, home, job: rest, line });
       const where = `README.md #${num} ${pet}`;
-      if (m) add('Organizational', 'warn', where, `Pet #${num}'s line starts with its repo, not the pet.`, { line, fix: 'Pet first: **Pet** · *Home* · [`repo`](link) -- what it does [status].' });
+      if (m) add('Organizational', 'warn', where, `Pet #${num}'s line starts with its repo, not the pet.`, { line, fix: 'Pet first: **Pet** -- what it does [status], with the home, repo and tools as sub-bullets beneath.' });
+      else if (pf) add('Organizational', 'note', where, `Pet #${num}'s home and repo sit on the pet line.`, { line, fix: 'Keep only **Pet** -- what it does [status] on the line; put the home, repo and tools in sub-bullets beneath.' });
       if (/pet-program-\d+|icon-\d+/i.test(pet)) add('Blatant', 'error', where, `Pet #${num} has a placeholder for a name: "${pet}".`, { line, fix: 'Give the pet its own name.' });
-      if (PLACE_WORDS.test(pet) || /^(?:astra['’]s\s+)?(?:\w+\s+)?(?:web)?site\b/i.test(rest)) add('Organizational', 'warn', where, `"${pet}" reads like a home (a place), not a pet. The pet and its home may be switched.`, { line, evidence: clip(ln.replace(/^.*?--\s*/, ''), 90), fix: 'Pet first, then its home: **Pet** · *Home* · [`repo`](link) -- what it does.' });
+      if (PLACE_WORDS.test(pet) || /^(?:astra['’]s\s+)?(?:\w+\s+)?(?:web)?site\b/i.test(rest)) add('Organizational', 'warn', where, `"${pet}" reads like a home (a place), not a pet. The pet and its home may be switched.`, { line, evidence: clip(ln.replace(/^.*?--\s*/, ''), 90), fix: 'Pet first: **Pet** -- what it does, with its home as the first sub-bullet beneath.' });
       if (/^(planned|not decided yet|not built yet|tbd|todo)\s*:/i.test(rest)) add('Organizational', 'warn', where, `Pet #${num}'s status ("${rest.split(':')[0]}") sits where its home or job belongs.`, { line, fix: 'Write the job; put status in [brackets] at the end of the line.' });
-      else if (!home && /^[a-z][a-z /]{1,30}:\s/.test(rest) && !ROSTER_JOB.test(rest.split(':')[0])) add('Organizational', 'warn', where, `Pet #${num} has a category ("${rest.split(':')[0]}") where its home belongs.`, { line, fix: 'Name the home: **Pet** · *Home* · [`repo`](link) -- what it does.' });
+      else if (!home && /^[a-z][a-z /]{1,30}:\s/.test(rest) && !ROSTER_JOB.test(rest.split(':')[0])) add('Organizational', 'warn', where, `Pet #${num} has a category ("${rest.split(':')[0]}") where its home belongs.`, { line, fix: 'Name the home in the first sub-bullet: - [`home-name`](page) -- *Home*, the pet program.' });
       else if (!home) noHome.push(`#${num} ${pet}`);
       if (/\b(?:is|are) planned\b|\bnot built yet\b|\bwill run\b/i.test(rest)) add('Organizational', 'note', where, `Pet #${num}'s job is written as a plan, not as what it does.`, { line, evidence: clip(rest, 90), fix: 'Say what it does; keep status in [brackets] at the end.' });
       if (home && new RegExp(`^runs\\s+${home.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(rest)) add('Organizational', 'note', where, `Pet #${num}'s job repeats its home's name ("runs ${home}").`, { line, fix: 'Start the job with what the pet does.' });
@@ -544,7 +562,7 @@ const Goldfish = (() => {
       if (cnt) add('Organizational', 'note', where, `Pet #${num} states an exact count ("${cnt[0]}") that goes stale.`, { line, fix: `Use a floor, e.g. "${Math.floor(cnt[1] / 10) * 10}+ ${cnt[2]}".` });
     });
     if (!pets.length) return;
-    if (noHome.length) add('Organizational', 'warn', 'README.md', `${noHome.length} pet${noHome.length === 1 ? ' has' : 's have'} no home: ${noHome.join(', ')}.`, { fix: 'Give each one: **Pet** · *Home* · [`repo`](link) -- what it does.' });
+    if (noHome.length) add('Organizational', 'warn', 'README.md', `${noHome.length} pet${noHome.length === 1 ? ' has' : 's have'} no home: ${noHome.join(', ')}.`, { fix: 'Give each one a home sub-bullet: - [`home-name`](page) -- *Home*, the pet program.' });
     const nums = pets.map((p) => p.num);
     const dup = [...new Set(nums.filter((n, i) => nums.indexOf(n) !== i))];
     if (dup.length) add('Document control', 'warn', 'README.md', `Pet numbers used twice: ${dup.join(', ')}.`);
