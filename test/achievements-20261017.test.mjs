@@ -46,7 +46,10 @@ test('a tiered achievement shows its next tier, and costly or social ones rank l
   assert.equal(order.at(-1), 'starstruck');
 });
 
-test('what the owner says the profile shows wins over a lower estimate, within range', () => {
+test('what the owner says the profile shows wins, even below the estimate, within range', () => {
+  const shark = A.ACHIEVEMENTS.find((a) => a.id === 'pull-shark');
+  assert.equal(A.status(shark, { mergedPRs: 39 }, { 'pull-shark': 0 }).tier, 0);
+  assert.equal(A.status(shark, { mergedPRs: 39 }, {}).tier, 2);
   const pair = A.ACHIEVEMENTS.find((a) => a.id === 'pair-extraordinaire');
   assert.equal(A.status(pair, { coauthored: 0 }, { 'pair-extraordinaire': 2 }).tier, 2);
   assert.equal(A.status(pair, {}, { 'pair-extraordinaire': 99 }).tier, 4);
@@ -124,4 +127,11 @@ test('co-author lines are only a hint: they never mark Pair Extraordinaire earne
   const pair = A.ACHIEVEMENTS.find((a) => a.id === 'pair-extraordinaire');
   assert.equal(A.status(pair, { coauthored: 275 }, {}).tier, 0);
   assert.equal(A.status(pair, { coauthored: 275 }, { 'pair-extraordinaire': 4 }).done, true);
+});
+
+test('a quickly merged pull request is not Quickdraw; a quickly closed issue is', async () => {
+  const fast = { created_at: '2026-10-01T00:00:00Z', closed_at: '2026-10-01T00:01:00Z' };
+  const run = (item) => A.detect('findastra', { fetchImpl: fakeFetch([[/is%3Aclosed/, { items: [item] }]]) });
+  assert.equal((await run({ ...fast, pull_request: { merged_at: fast.closed_at } })).metrics.quickdraw, 0);
+  assert.equal((await run(fast)).metrics.quickdraw, 1);
 });

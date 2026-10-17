@@ -1290,8 +1290,9 @@ const GoldfishAchievements = (() => {
     const count = def.metric ? metrics[def.metric] : undefined;
     // A weak metric is only a hint (e.g. co-author lines GitHub may not link to an account); it never marks progress.
     const detected = def.weak ? 0 : tierFrom(def, count);
-    const said = Number.isInteger(manual[def.id]) ? Math.min(Math.max(manual[def.id], 0), def.tiers.length) : 0;
-    const tier = Math.max(detected, said);
+    // Once the owner sets what the profile shows, that is the answer, higher or lower than the estimate.
+    const said = Number.isInteger(manual[def.id]) ? Math.min(Math.max(manual[def.id], 0), def.tiers.length) : null;
+    const tier = said ?? detected;
     const done = tier >= def.tiers.length;
     return { def, count, detected, manual: said, tier, done, next: done ? null : def.tiers[tier],
       minutes: done || def.retired ? Infinity : effortMinutes(def, count, tier) };
@@ -1349,7 +1350,8 @@ const GoldfishAchievements = (() => {
     });
     await tryRun(async () => {
       const r = await get('/search/issues?q=' + q('author:' + login + ' is:closed') + '&per_page=100&sort=created&order=desc');
-      metrics.quickdraw = (r.items || []).some((i) => i.closed_at && Date.parse(i.closed_at) - Date.parse(i.created_at) <= 5 * 60 * 1000) ? 1 : 0;
+      // A quick merge is not a quick close: merged pull requests are left out.
+      metrics.quickdraw = (r.items || []).some((i) => i.closed_at && !i.pull_request?.merged_at && Date.parse(i.closed_at) - Date.parse(i.created_at) <= 5 * 60 * 1000) ? 1 : 0;
     });
     await tryRun(async () => {
       const r = await get('/search/commits?q=' + q('author:' + login + ' co-authored-by') + '&per_page=1');
@@ -1401,7 +1403,7 @@ const GoldfishAchievements = (() => {
     nextList.replaceChildren();
     for (const s of A.rankNext(saved.metrics, saved.manual).slice(0, 5)) {
       const d = s.def, tiers = d.tiers.length > 1 ? ' — tier ' + (s.tier + 1) + ' of ' + d.tiers.length : '';
-      const progress = d.weak && typeof s.count === 'number' ? s.count + ' ' + d.unit + ' found; set the tier your profile shows' : d.metric && typeof s.count === 'number' ? s.count + ' of ' + s.next + ' ' + d.unit : d.metric ? 'not checked yet' : 'set by you';
+      const progress = d.weak && typeof s.count === 'number' ? s.count + ' ' + d.unit + ' found; set the tier your profile shows' : d.metric && typeof s.count === 'number' && s.count >= s.next ? 'the check found ' + s.count + ' ' + d.unit + ', but your profile does not show it' : d.metric && typeof s.count === 'number' ? s.count + ' of ' + s.next + ' ' + d.unit : d.metric ? 'not checked yet' : 'set by you';
       const flags = [d.beta && 'may not be awarded yet', d.money && 'costs money'].filter(Boolean).join(', ');
       nextList.append(E('li', {}, E('strong', { textContent: d.name + tiers }), ...d.tracks.map(tag),
         E('div', { className: 'ach-meta', textContent: A.effortLabel(s.minutes, d) + ' · ' + progress + (flags ? ' · ' + flags : '') }),
@@ -1412,10 +1414,10 @@ const GoldfishAchievements = (() => {
     for (const d of A.ACHIEVEMENTS) {
       const s = A.status(d, saved.metrics, saved.manual);
       const sel = E('select', { ariaLabel: d.name + ': what your profile shows' },
-        E('option', { value: '0', textContent: 'Not yet' }),
+        E('option', { value: '', textContent: 'Use the estimate' }), E('option', { value: '0', textContent: 'Not yet' }),
         ...d.tiers.map((t, i) => E('option', { value: String(i + 1), textContent: d.tiers.length > 1 ? 'Tier ' + (i + 1) + ' (' + t + ')' : 'Earned' })));
-      sel.value = String(s.manual);
-      sel.onchange = () => { saved.manual[d.id] = Number(sel.value); persist(); renderAchievements(); };
+      sel.value = s.manual == null ? '' : String(s.manual);
+      sel.onchange = () => { if (sel.value === '') delete saved.manual[d.id]; else saved.manual[d.id] = Number(sel.value); persist(); renderAchievements(); };
       const found = !d.metric ? 'Can’t detect' : typeof s.count !== 'number' ? 'Not checked' : d.weak ? 'Maybe (' + s.count + ' ' + d.unit + ')' : s.detected ? (d.tiers.length > 1 ? 'Tier ' + s.detected : 'Likely earned') + ' (' + s.count + ')' : 'Not yet (' + s.count + ')';
       allBody.append(E('tr', {}, E('td', {}, E('strong', { textContent: d.name }), E('div', { className: 'ach-note', textContent: d.rule })), E('td', { textContent: found }), E('td', {}, sel)));
     }
