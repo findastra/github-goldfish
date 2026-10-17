@@ -33,12 +33,12 @@
 
 - Line shape (Astra, 2026-10-16): the pet name and what it does, then the home (pet program), repo and tools as sub-bullets:
   ```
-  1. **Friendly Farmer** -- organizes the pets ...
-     - [`the-farm`](page) -- the pet program (the name is said once)
+  1. **[Friendly Farmer](https://github.com/findastra/astras-pet-os)** -- organizes the pets ...
+     - [`the-farm`](page) -- the pet program
      - [`astras-pet-os`](https://github.com/findastra/astras-pet-os) -- Astra's PetOS home repo
-     - [`the-kennel`](https://github.com/findastra/the-kennel) -- ...
+     - [`startup-star`](https://github.com/findastra/startup-star) -- ...
   ```
-  A line that starts with the repo is flagged; a line with the home and repo still on it is a note. A pet with no home sub-bullet is flagged.
+  A line that starts with the repo is flagged; a line with the home and repo still on it is a note. A pet with no home sub-bullet is flagged. **No name twice:** the pet's name is its own link to its repo, so the repo is not listed again beneath it, and the home's name is said once, as its link text.
 - **Pet first, home second.** A place (Kingdom, Station, Den, Casino, site…) in the pet slot means they are switched: Astra fixed `File Kingdom · File Master` to `File Master · File Kingdom`, and `Dubstep Gunsmith` (a catalog site) is a home waiting for its pet.
 - **Every pet has a home.** No home is reported once, as a list. With no home yet, the first sub-bullet is ``- `pet-program-N` -- pet program, not named yet``.
 - **No placeholder names** (`pet-program-77-icon-77`).
