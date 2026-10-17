@@ -66,3 +66,8 @@ unique visible animal rows and whole-document seed-prose checks. Source commits
 and source/draft coverage must be visible; no model approval overrides failures.
 
 Shared L3 activity adapter and Flash Audit A52 by OpenAI Codex (GPT-6), 2026-10-16. The README auditor reports actual local harness status; standalone programs without an adapter remain disconnected. Source presence never certifies a live L3 connection.
+
+Achievement-tracker tool, Claude Opus 5.5 (`claude-opus-5-5`), 2026-10-17: new Aquarium tool
+bubble that estimates GitHub achievements from public API data, ranks the easiest next ones,
+and offers Start Project ideas tied to Astra's course tracks. Owner-set tiers always win over
+estimates. See docs/achievement-tracker-20261017.md.

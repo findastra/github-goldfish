@@ -1134,7 +1134,7 @@ a{color:#86436f}.device{border-color:#805872;box-shadow:0 6px 0 #805872}.device-
 (()=>{
  const $=id=>document.getElementById(id), key='github-aquarium:tool-state:v1';
  let saved={schema:1,tools:{},backlog:[]};try{const x=JSON.parse(localStorage.getItem(key));if(x?.schema===1&&x.tools&&typeof x.tools==='object'&&!Array.isArray(x.tools)&&Array.isArray(x.backlog))saved={schema:1,tools:x.tools,backlog:x.backlog.filter(v=>v&&typeof v==='object'&&!Array.isArray(v))};}catch{}
- const specs=[...Goldfish.ERROR_TOOLS.map(([id,description])=>[id,description,'go']),['github-auditor','Read authorized GitHub repositories.','go'],['naming-corrections','Remember explicit naming corrections.','learn-save'],['never-say-checker','Include your prohibited-word rules.','never'],['report-exporter','Copy or download the current report.','download'],['findastra-README-auditor','Audit and revise your GitHub profile with the local L3 maker and checker; review before pushing.','readme-auditor'],['flash-audit','Manual instructions and read-only local metadata preflight available; runtime acceptance remains manual.',null],['play-with-github-goldfish','Learn to use this program in L3 chat.','tutorial'],['care-for-github-goldfish','Learn to maintain this program in L3 chat.','tutorial']];
+ const specs=[...Goldfish.ERROR_TOOLS.map(([id,description])=>[id,description,'go']),['github-auditor','Read authorized GitHub repositories.','go'],['naming-corrections','Remember explicit naming corrections.','learn-save'],['never-say-checker','Include your prohibited-word rules.','never'],['report-exporter','Copy or download the current report.','download'],['findastra-README-auditor','Audit and revise your GitHub profile with the local L3 maker and checker; review before pushing.','readme-auditor'],['achievement-tracker','Track your GitHub achievements, see the easiest next ones, and Start Project ideas that fit your course.','achievements'],['flash-audit','Manual instructions and read-only local metadata preflight available; runtime acceptance remains manual.',null],['play-with-github-goldfish','Learn to use this program in L3 chat.','tutorial'],['care-for-github-goldfish','Learn to maintain this program in L3 chat.','tutorial']];
  const publishHealth=()=>{window.astraPetHealth={brokenTools:Object.values(saved.tools).filter(v=>v?.sick===true).length,unansweredQuestions:null,notifications:null};document.dispatchEvent(new CustomEvent('astra-pet-health',{detail:window.astraPetHealth}));};
  const persist=()=>{publishHealth();try{localStorage.setItem(key,JSON.stringify(saved));$('tool-feedback').textContent='Saved on this device. Farmer report delivery is not connected.';}catch{$('tool-feedback').textContent='Storage unavailable: this change will not survive closing the page.';}};
  const enabled=id=>saved.tools[id]?.on!==false;
@@ -1160,6 +1160,322 @@ a{color:#86436f}.device{border-color:#805872;box-shadow:0 6px 0 #805872}.device-
  const run=$('go');const actions=document.createElement('div');actions.className='aquarium-actions';document.querySelector('.device-foot').after(actions);actions.append(run);
 })();
 </script>
+<!--achievements-start: achievement-tracker tool, Claude Opus 5.5, 2026-10-17-->
+<style id="achievements-style">
+.ach{margin:10px 0 4px;text-align:left;color:#422039}.ach h3{margin:14px 0 6px;font-size:1rem}.ach-note{font-size:.82rem;color:#6d4a63;margin:4px 0}
+.ach-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ach button,.ach a.ach-btn{font:inherit;padding:6px 14px;border-radius:999px;border:1px solid #ac397c;background:#ffd6ec;color:#422039;cursor:pointer;text-decoration:none}
+.ach button:hover,.ach a.ach-btn:hover{background:#ff9fd2}.ach .ach-start,.aquarium-actions .ach-start{font-weight:700;background:#ff9fd2;border:1px solid #ac397c;border-radius:999px;padding:8px 18px;color:#422039;cursor:pointer}
+.ach-next{padding-left:1.4em;margin:0}.ach-next li{margin:0 0 10px}.ach-next .ach-meta{font-size:.82rem;color:#6d4a63}.ach-next .ach-how{margin:3px 0 0;font-size:.9rem}
+.ach-tag{display:inline-block;font-size:.72rem;padding:1px 8px;border-radius:999px;background:#e9dcff;color:#49376e;margin-left:4px}.ach-tag.cyber{background:#d4f0ff;color:#234a66}.ach-tag.ai{background:#e9dcff;color:#49376e}.ach-tag.nomad{background:#dff5d8;color:#2f5a25}
+.ach-all{width:100%;border-collapse:collapse;font-size:.88rem}.ach-all td,.ach-all th{padding:4px 6px;border-bottom:1px solid #f0c6dd;text-align:left;vertical-align:top}.ach-all select{font:inherit}
+.ach-card{margin-top:10px;padding:12px;border:1px solid #d994ba;border-radius:16px;background:#fff}.ach-card h4{margin:0 0 4px;font-size:1rem}.ach-card ol{margin:6px 0;padding-left:1.4em}
+#achievements:focus{outline:2px solid #ac397c;outline-offset:4px}
+</style>
+<script id="achievements">
+// Pure data and ranking for the achievement-tracker tool. No DOM here, so tests can run it.
+const GoldfishAchievements = (() => {
+  const TRACKS = { cyber: 'Cyber security', ai: 'AI', nomad: 'Nomad & money' };
+  // GitHub publishes no achievements API. Tiers and rules follow GitHub's profile docs as of 2026-10;
+  // `detect` names the public data each estimate uses. Effort is a rough minutes figure used only to sort.
+  const ACHIEVEMENTS = [
+    { id: 'quickdraw', name: 'Quickdraw', tiers: [1], metric: 'quickdraw', unit: 'fast close', setup: 3, per: 0, tracks: ['cyber'],
+      rule: 'Close an issue or pull request within 5 minutes of opening it.',
+      how: 'In one of your repos, open an issue called "Turn on 2FA and save my recovery codes", do it, then close the issue within 5 minutes.' },
+    { id: 'yolo', name: 'YOLO', tiers: [1], metric: 'yolo', unit: 'merge without review', setup: 10, per: 0, tracks: ['cyber'],
+      rule: 'Merge a pull request without a code review.',
+      how: 'On a branch, add a SECURITY.md to a pet repo, open a pull request and merge it yourself. Fine on your own repos; on shared ones, a review is the safer habit.' },
+    { id: 'pair-extraordinaire', name: 'Pair Extraordinaire', tiers: [1, 10, 24, 48], metric: 'coauthored', weak: true, unit: 'commits with a co-author line', setup: 10, per: 20, tracks: ['ai'],
+      rule: 'Co-author commits on merged pull requests.',
+      how: 'A commit with a "Co-authored-by:" line counts once its pull request is merged. Your assistant sessions already add one: open a merged commit and see whether GitHub shows two avatars. If not, pair with a classmate whose email is on their GitHub account.' },
+    { id: 'heart-on-your-sleeve', name: 'Heart On Your Sleeve', tiers: [1], metric: null, unit: '', setup: 1, per: 0, beta: true, tracks: ['ai', 'cyber', 'nomad'],
+      rule: 'React with a heart on GitHub.',
+      how: 'Leave a heart reaction on an issue, pull request or discussion you liked. GitHub listed this one as coming, so it may not be awarded yet.' },
+    { id: 'pull-shark', name: 'Pull Shark', tiers: [2, 16, 128, 1024], metric: 'mergedPRs', unit: 'merged pull requests', setup: 10, per: 20, tracks: ['ai', 'cyber', 'nomad'],
+      rule: 'Open pull requests that get merged.',
+      how: 'Every Start Project below ends in a merged pull request: branch, commit, open the PR, merge.' },
+    { id: 'public-sponsor', name: 'Public Sponsor', tiers: [1], metric: null, unit: '', setup: 10, per: 0, money: true, tracks: ['nomad'],
+      rule: 'Sponsor an open source contributor through GitHub Sponsors.',
+      how: 'Sponsor one maintainer of a tool you use. It costs money, so it ranks after the free ones: a budget call for your financial-freedom track.' },
+    { id: 'open-sourcerer', name: 'Open Sourcerer', tiers: [1], metric: 'otherRepos', unit: "other people's repos with your merged PRs", setup: 60, per: 60, beta: true, others: true, tracks: ['ai', 'cyber'],
+      rule: 'Get pull requests merged in several public repositories. GitHub has not published the exact rule.',
+      how: 'Fix an unclear step in the docs of a public AI or security tool you are learning, and get the pull request merged.' },
+    { id: 'galaxy-brain', name: 'Galaxy Brain', tiers: [2, 8, 16, 32], metric: null, unit: 'accepted answers', setup: 30, per: 120, others: true, tracks: ['ai', 'cyber'],
+      rule: 'Have answers accepted in GitHub Discussions.',
+      how: 'Answer questions in the Discussions of tools from your course. The person who asked has to mark your answer as the answer.' },
+    { id: 'security-advisory-credit', name: 'Security advisory credit', tiers: [1], metric: null, unit: '', setup: 2400, per: 0, others: true, highlight: true, tracks: ['cyber'],
+      rule: 'Be credited on a reviewed GitHub Security Advisory (a profile highlight, not an achievement badge).',
+      how: 'Report a real vulnerability through a project\'s private vulnerability reporting and get credited. Only test software you own or have written permission to test.' },
+    { id: 'starstruck', name: 'Starstruck', tiers: [16, 128, 512, 4096], metric: 'maxStars', unit: 'stars on your best repo', setup: 0, per: 240, others: true, tracks: ['nomad'],
+      rule: 'Own a repository with many stars.',
+      how: 'Make one repo genuinely useful (a public security checklist, say) and share it. Never buy or swap stars: GitHub removes them and can flag the account.' },
+    { id: 'arctic-code-vault', name: 'Arctic Code Vault Contributor', tiers: [1], metric: null, retired: true, tracks: [], rule: 'Retired: given for code in the 2020 Arctic Code Vault.', how: '' },
+    { id: 'mars-2020', name: 'Mars 2020 Contributor', tiers: [1], metric: null, retired: true, tracks: [], rule: 'Retired: given for code used in the 2020 Mars helicopter mission.', how: '' }
+  ];
+
+  const PROJECTS = [
+    { id: 'goldfish-security-md', size: 'small', repo: 'github-goldfish', tracks: ['cyber'], earns: ['pull-shark', 'yolo', 'pair-extraordinaire'],
+      title: 'Teach the Goldfish to flag pet repos with no SECURITY.md',
+      why: 'A SECURITY.md tells people how to report a vulnerability privately. Learn what belongs in one, then make the Goldfish check for it.',
+      first: 'Read GitHub\'s "Adding a security policy to your repository" page and write your own SECURITY.md first.' },
+    { id: 'ai-doghouse-course-notes', size: 'small', repo: 'ai-doghouse', tracks: ['ai'], earns: ['pull-shark', 'yolo'],
+      title: 'AI Doghouse: one knowledge-base entry per course lesson',
+      why: 'Writing each lesson in your own words is how it sticks, and the knowledge base gets real content.',
+      first: 'Pick the last lesson you finished and write its entry: what it was, one example, one question you still have.' },
+    { id: 'chat-rat-course-tags', size: 'small', repo: 'chat-rat', tracks: ['ai'], earns: ['pull-shark', 'yolo', 'pair-extraordinaire'],
+      title: 'Chat Rat: tag saved chats by course track',
+      why: 'Tag chats as cyber security, AI or nomad & money, and your assistant conversations turn into a study log you can search.',
+      first: 'Decide the three tag names and where Chat Rat stores a tag for each conversation.' },
+    { id: 'api-fairy-key-age', size: 'small', repo: 'api-fairy', tracks: ['cyber', 'ai'], earns: ['pull-shark', 'yolo', 'pair-extraordinaire'],
+      title: 'API Fairy: warn when a key is older than 90 days',
+      why: 'Key rotation is a core security habit, and AI work runs on API keys.',
+      first: 'Find where API Fairy records each key\'s age, and choose what the warning looks like.' },
+    { id: 'new-pet-subscriptions', size: 'small', repo: 'astras-pet-os', tracks: ['nomad'], earns: ['pull-shark', 'yolo'],
+      title: 'New pet (you name it): list recurring charges you could cancel',
+      why: 'Cutting subscriptions is the quickest money win on the road to financial freedom.',
+      first: 'Write down every subscription you pay for and what each costs a month. That list is the pet\'s first data.' },
+    { id: 'police-station-failed-signins', size: 'medium', repo: 'the-police-station', tracks: ['cyber'], earns: ['pull-shark', 'yolo', 'pair-extraordinaire'],
+      title: 'The Police Station: show failed Windows sign-ins from the last day',
+      why: 'Reading the Windows Security log (event 4625) is a real blue-team skill.',
+      first: 'Open Event Viewer, go to Windows Logs > Security, filter for event ID 4625 and see what a failed sign-in record contains.' },
+    { id: 'backup-beaver-321', size: 'medium', repo: 'backup-beaver', tracks: ['cyber', 'nomad'], earns: ['pull-shark', 'yolo', 'pair-extraordinaire'],
+      title: 'Backup Beaver: check for 3-2-1 backups before you travel',
+      why: '3 copies, 2 kinds of storage, 1 off-site. A stolen laptop on the road should cost you a laptop, not your work.',
+      first: 'List where your important folders are backed up today and count how many of the 3-2-1 you already meet.' },
+    { id: 'wifi-butterfly-public-wifi', size: 'medium', repo: 'wifi-butterfly', tracks: ['cyber', 'nomad'], earns: ['pull-shark', 'yolo', 'pair-extraordinaire'],
+      title: 'Wifi Butterfly: a public Wi-Fi safety check for travel days',
+      why: 'Wifi Butterfly\'s job is still undecided (its card 001). This would make it flag open networks and remind you to turn on your VPN.',
+      first: 'Decide on card 001 whether this is Wifi Butterfly\'s job. It is your call.' },
+    { id: 'paper-girl-ai-security-shelf', size: 'medium', repo: 'paper-girl', tracks: ['ai', 'cyber'], earns: ['pull-shark', 'yolo', 'pair-extraordinaire'],
+      title: 'Paper Girl: an AI and security papers shelf',
+      why: 'arXiv\'s cs.AI and cs.CR lists are where new AI and security research appears first.',
+      first: 'Read arXiv\'s API terms of use and try one query for cs.CR in your browser.' },
+    { id: 'new-pet-nomad-budget', size: 'medium', repo: 'astras-pet-os', tracks: ['nomad'], earns: ['pull-shark', 'yolo'],
+      title: 'New pet (you name it): cost of living vs. your income goal',
+      why: 'Compare what a month costs in a city you would like to live in with what you earn now.',
+      first: 'Pick two cities and write down a monthly budget for each: rent, food, transport, internet, insurance.' },
+    { id: 'portfolio-learning-path', size: 'medium', repo: 'findastra.github.io', tracks: ['nomad', 'ai', 'cyber'], earns: ['pull-shark', 'yolo'],
+      title: 'findastra.github.io: a Learning Path page',
+      why: 'A public page of what you have learned and built is a remote-work portfolio piece.',
+      first: 'Sketch the page: one row per course track, each with what you finished and a link to the project that shows it.' },
+    { id: 'raspberry-berry-pihole', size: 'large', repo: 'raspberry-berry', tracks: ['cyber'], earns: ['pull-shark', 'yolo', 'pair-extraordinaire'],
+      title: 'Raspberry Berry: run a Pi-hole and show blocked trackers',
+      why: 'A network-wide DNS blocker teaches DNS, network services and home network hardening.',
+      first: 'Read Pi-hole\'s install requirements and check your Raspberry Pi model meets them.' },
+    { id: 'mesh-moth-offgrid', size: 'large', repo: 'mesh-moth', tracks: ['nomad', 'cyber'], earns: ['pull-shark', 'yolo', 'pair-extraordinaire'],
+      title: 'Mesh Moth: off-grid messages between two radios',
+      why: 'Meshtastic radios keep you in touch on travel days with no signal, and their encryption is worth understanding.',
+      first: 'Read the Meshtastic getting-started guide and list which radios you would need.' }
+  ];
+
+  const SIZE_ORDER = { small: 0, medium: 1, large: 2 };
+
+  function tierFrom(def, count) {
+    if (typeof count !== 'number' || !Number.isFinite(count)) return 0;
+    return def.tiers.filter((t) => count >= t).length;
+  }
+
+  function effortMinutes(def, count, tier) {
+    const target = def.tiers[tier];
+    const remaining = Math.max(0, target - (typeof count === 'number' ? count : 0));
+    return def.setup + remaining * def.per + (def.money ? 60 : 0) + (def.beta ? 30 : 0);
+  }
+
+  function effortLabel(minutes, def) {
+    const base = minutes < 60 ? 'about ' + Math.max(1, Math.round(minutes)) + ' min' : minutes < 600 ? 'about ' + Math.round(minutes / 60) + ' h' : 'weeks';
+    return def.others ? base + ', needs other people' : base;
+  }
+
+  // metrics: { mergedPRs, ... } from detect(); manual: { id: tier the owner says the profile shows }.
+  function status(def, metrics = {}, manual = {}) {
+    const count = def.metric ? metrics[def.metric] : undefined;
+    // A weak metric is only a hint (e.g. co-author lines GitHub may not link to an account); it never marks progress.
+    const detected = def.weak ? 0 : tierFrom(def, count);
+    const said = Number.isInteger(manual[def.id]) ? Math.min(Math.max(manual[def.id], 0), def.tiers.length) : 0;
+    const tier = Math.max(detected, said);
+    const done = tier >= def.tiers.length;
+    return { def, count, detected, manual: said, tier, done, next: done ? null : def.tiers[tier],
+      minutes: done || def.retired ? Infinity : effortMinutes(def, count, tier) };
+  }
+
+  function rankNext(metrics = {}, manual = {}) {
+    return ACHIEVEMENTS.filter((d) => !d.retired).map((d) => status(d, metrics, manual)).filter((s) => !s.done)
+      .sort((a, b) => a.minutes - b.minutes || ACHIEVEMENTS.indexOf(a.def) - ACHIEVEMENTS.indexOf(b.def));
+  }
+
+  function projectQueue(done = [], track = 'all') {
+    return PROJECTS.filter((p) => !done.includes(p.id) && (track === 'all' || p.tracks.includes(track)))
+      .sort((a, b) => SIZE_ORDER[a.size] - SIZE_ORDER[b.size] || PROJECTS.indexOf(a) - PROJECTS.indexOf(b));
+  }
+
+  const LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$/;
+
+  function steps(project) {
+    return [project.first, 'Make a branch for it.', 'Build it with your assistant. Keep the Co-authored-by line on commits.',
+      'Open a pull request that closes this issue.', 'Merge it (counts toward Pull Shark; merging without a review counts toward YOLO).'];
+  }
+
+  function issueUrl(owner, project) {
+    if (!LOGIN.test(owner)) throw new Error('Not a GitHub account name: ' + owner);
+    const earns = project.earns.map((id) => ACHIEVEMENTS.find((a) => a.id === id)?.name).filter(Boolean).join(', ');
+    const body = [project.why, '', ...steps(project).map((s) => '- [ ] ' + s), '',
+      'Course track: ' + project.tracks.map((t) => TRACKS[t]).join(', '), 'Achievements this works toward: ' + earns,
+      '', 'Started from the achievement-tracker tool in GitHub Aquarium.'].join('\n');
+    return 'https://github.com/' + owner + '/' + project.repo + '/issues/new?title=' + encodeURIComponent(project.title) + '&body=' + encodeURIComponent(body);
+  }
+
+  // Reads public data from api.github.com only. Each figure is an estimate; failures are reported, not guessed.
+  async function detect(login, { token = '', fetchImpl = fetch, signal } = {}) {
+    if (!LOGIN.test(login)) throw new Error('Not a GitHub account name: ' + login);
+    const headers = { Accept: 'application/vnd.github+json' };
+    if (token) headers.Authorization = 'Bearer ' + token;
+    const get = async (path) => {
+      const r = await fetchImpl('https://api.github.com' + path, { headers, signal });
+      if (r.status === 403 || r.status === 429) throw new Error('GitHub rate limit reached. Wait a minute or add a token in settings.');
+      if (!r.ok) throw new Error('GitHub answered ' + r.status + ' for ' + path.split('?')[0] + '.');
+      return r.json();
+    };
+    const q = (s) => encodeURIComponent(s);
+    const metrics = {}, errors = [];
+    const tryRun = async (fn) => { try { await fn(); } catch (e) { if (e?.name === 'AbortError') throw e; errors.push(String(e?.message || e)); } };
+    await tryRun(async () => {
+      const r = await get('/search/issues?q=' + q('type:pr author:' + login + ' is:merged') + '&per_page=100');
+      metrics.mergedPRs = r.total_count;
+      const own = 'https://api.github.com/repos/' + login.toLowerCase() + '/';
+      metrics.otherRepos = new Set((r.items || []).map((i) => String(i.repository_url || '')).filter((u) => u && !u.toLowerCase().startsWith(own))).size;
+    });
+    await tryRun(async () => {
+      const r = await get('/search/issues?q=' + q('type:pr author:' + login + ' is:merged review:none') + '&per_page=1');
+      metrics.yolo = r.total_count > 0 ? 1 : 0;
+    });
+    await tryRun(async () => {
+      const r = await get('/search/issues?q=' + q('author:' + login + ' is:closed') + '&per_page=100&sort=created&order=desc');
+      metrics.quickdraw = (r.items || []).some((i) => i.closed_at && Date.parse(i.closed_at) - Date.parse(i.created_at) <= 5 * 60 * 1000) ? 1 : 0;
+    });
+    await tryRun(async () => {
+      const r = await get('/search/commits?q=' + q('author:' + login + ' co-authored-by') + '&per_page=1');
+      metrics.coauthored = r.total_count;
+    });
+    await tryRun(async () => {
+      const r = await get('/users/' + login + '/repos?per_page=100&type=owner');
+      metrics.maxStars = Math.max(0, ...(Array.isArray(r) ? r.map((x) => x.stargazers_count || 0) : []));
+    });
+    return { metrics, errors };
+  }
+
+  return { TRACKS, ACHIEVEMENTS, PROJECTS, tierFrom, effortLabel, status, rankNext, projectQueue, steps, issueUrl, detect };
+})();
+</script>
+<script id="achievements-ui">
+(() => {
+  const A = GoldfishAchievements, $ = (id) => document.getElementById(id), key = 'github-aquarium:achievements:v1';
+  const E = (tag, props = {}, ...kids) => { const el = Object.assign(document.createElement(tag), props); el.append(...kids.filter((k) => k != null)); return el; };
+  let saved = { schema: 1, manual: {}, done: [], track: 'all', metrics: {}, checked: null, login: '' };
+  try { const x = JSON.parse(localStorage.getItem(key)); if (x?.schema === 1) saved = { ...saved, ...x, manual: { ...x.manual }, done: Array.isArray(x.done) ? x.done : [], metrics: { ...x.metrics } }; } catch {}
+  const persist = () => { try { localStorage.setItem(key, JSON.stringify(saved)); } catch {} };
+  const login = () => ($('user')?.value || 'findastra').trim();
+  const tag = (t) => E('span', { className: 'ach-tag ' + t, textContent: A.TRACKS[t] });
+
+  const panel = E('div', { id: 'achievements', className: 'ach', tabIndex: -1 });
+  const checkBtn = E('button', { type: 'button', textContent: 'Check my achievements' });
+  const checkStatus = E('span', { className: 'ach-note', role: 'status' });
+  const nextList = E('ol', { className: 'ach-next' });
+  const allBody = E('tbody');
+  const trackSel = E('select', { id: 'ach-track' }, E('option', { value: 'all', textContent: 'All tracks' }), ...Object.entries(A.TRACKS).map(([v, t]) => E('option', { value: v, textContent: t })));
+  const startBtn = E('button', { type: 'button', className: 'ach-start', textContent: 'Start Project' });
+  const card = E('div', { className: 'ach-card', hidden: true });
+  let cursor = 0;
+
+  panel.append(
+    E('div', { className: 'ach-row' }, checkBtn, checkStatus),
+    E('p', { className: 'ach-note', textContent: 'GitHub has no achievements API. The check reads public data from api.github.com and estimates; set what your profile actually shows in the table below and that wins.' }),
+    E('h3', { textContent: 'Easiest next' }), nextList,
+    E('details', {}, E('summary', { textContent: 'All achievements (set what your profile shows)' }),
+      E('table', { className: 'ach-all' }, E('thead', {}, E('tr', {}, E('th', { textContent: 'Achievement' }), E('th', { textContent: 'Detected' }), E('th', { textContent: 'Your profile shows' }))), allBody)),
+    E('h3', { textContent: 'Start a project' }),
+    E('p', { className: 'ach-note', textContent: 'Projects stay in your pet ecosystem and fit your course. Each one ends in a merged pull request, so it moves your achievements along too. Easiest first.' }),
+    E('div', { className: 'ach-row' }, E('label', { htmlFor: 'ach-track', textContent: 'Track ' }), trackSel, startBtn),
+    card
+  );
+
+  function renderAchievements() {
+    nextList.replaceChildren();
+    for (const s of A.rankNext(saved.metrics, saved.manual).slice(0, 5)) {
+      const d = s.def, tiers = d.tiers.length > 1 ? ' — tier ' + (s.tier + 1) + ' of ' + d.tiers.length : '';
+      const progress = d.weak && typeof s.count === 'number' ? s.count + ' ' + d.unit + ' found; set the tier your profile shows' : d.metric && typeof s.count === 'number' ? s.count + ' of ' + s.next + ' ' + d.unit : d.metric ? 'not checked yet' : 'set by you';
+      const flags = [d.beta && 'may not be awarded yet', d.money && 'costs money'].filter(Boolean).join(', ');
+      nextList.append(E('li', {}, E('strong', { textContent: d.name + tiers }), ...d.tracks.map(tag),
+        E('div', { className: 'ach-meta', textContent: A.effortLabel(s.minutes, d) + ' · ' + progress + (flags ? ' · ' + flags : '') }),
+        E('p', { className: 'ach-how', textContent: d.how })));
+    }
+    if (!nextList.children.length) nextList.append(E('li', { textContent: 'Every achievement you can still earn is marked as earned.' }));
+    allBody.replaceChildren();
+    for (const d of A.ACHIEVEMENTS) {
+      const s = A.status(d, saved.metrics, saved.manual);
+      const sel = E('select', { ariaLabel: d.name + ': what your profile shows' },
+        E('option', { value: '0', textContent: 'Not yet' }),
+        ...d.tiers.map((t, i) => E('option', { value: String(i + 1), textContent: d.tiers.length > 1 ? 'Tier ' + (i + 1) + ' (' + t + ')' : 'Earned' })));
+      sel.value = String(s.manual);
+      sel.onchange = () => { saved.manual[d.id] = Number(sel.value); persist(); renderAchievements(); };
+      const found = !d.metric ? 'Can’t detect' : typeof s.count !== 'number' ? 'Not checked' : d.weak ? 'Maybe (' + s.count + ' ' + d.unit + ')' : s.detected ? (d.tiers.length > 1 ? 'Tier ' + s.detected : 'Likely earned') + ' (' + s.count + ')' : 'Not yet (' + s.count + ')';
+      allBody.append(E('tr', {}, E('td', {}, E('strong', { textContent: d.name }), E('div', { className: 'ach-note', textContent: d.rule })), E('td', { textContent: found }), E('td', {}, sel)));
+    }
+  }
+
+  function renderProject() {
+    const queue = A.projectQueue(saved.done, saved.track);
+    if (!queue.length) { card.replaceChildren(E('p', { textContent: 'You have marked every project on this track done. Pick another track.' })); card.hidden = false; return; }
+    const p = queue[cursor % queue.length];
+    const steps = E('ol', {}, ...A.steps(p).map((s) => E('li', { textContent: s })));
+    const earns = p.earns.map((id) => A.ACHIEVEMENTS.find((a) => a.id === id).name).join(', ');
+    let link;
+    try { link = E('a', { className: 'ach-btn', href: A.issueUrl(login(), p), target: '_blank', rel: 'noopener', textContent: 'Open it as a GitHub issue' }); }
+    catch { link = E('span', { className: 'ach-note', textContent: 'Set a valid GitHub account in settings to open an issue.' }); }
+    const another = E('button', { type: 'button', textContent: 'Another idea' });
+    another.onclick = () => { cursor++; renderProject(); };
+    const done = E('button', { type: 'button', textContent: 'Mark done' });
+    done.onclick = () => { saved.done.push(p.id); persist(); renderProject(); };
+    card.replaceChildren(
+      E('h4', { textContent: p.title }),
+      E('div', { className: 'ach-meta' }, E('span', { textContent: p.size + ' · repo: ' + p.repo + ' · ' }), ...p.tracks.map(tag)),
+      E('p', { textContent: p.why }), steps,
+      E('p', { className: 'ach-note', textContent: 'Works toward: ' + earns + '. ' + (cursor % queue.length + 1) + ' of ' + queue.length + ' ideas on this track.' }),
+      E('div', { className: 'ach-row' }, link, another, done));
+    card.hidden = false;
+  }
+
+  trackSel.value = saved.track in A.TRACKS ? saved.track : 'all';
+  trackSel.onchange = () => { saved.track = trackSel.value; cursor = 0; persist(); if (!card.hidden) renderProject(); };
+  startBtn.onclick = () => { renderProject(); card.scrollIntoView({ block: 'nearest' }); };
+
+  let controller = null;
+  checkBtn.onclick = async () => {
+    const who = login();
+    controller?.abort(); controller = new AbortController();
+    checkBtn.disabled = true; checkStatus.textContent = 'Checking ' + who + ' on GitHub…';
+    try {
+      const { metrics, errors } = await A.detect(who, { token: $('token')?.value.trim() || '', signal: controller.signal });
+      saved.metrics = metrics; saved.login = who; saved.checked = new Date().toISOString(); persist(); renderAchievements();
+      checkStatus.textContent = 'Checked ' + who + ' just now.' + (errors.length ? ' Some figures are missing: ' + errors[0] : '');
+    } catch (e) {
+      checkStatus.textContent = e?.name === 'AbortError' ? 'Check cancelled.' : 'Check failed: ' + (e?.message || e);
+    } finally { checkBtn.disabled = false; }
+  };
+  if (saved.checked) checkStatus.textContent = 'Last checked ' + (saved.login || 'this account') + ' on ' + saved.checked.slice(0, 10) + '. Check again for fresh figures.';
+
+  renderAchievements();
+  const home = document.querySelector('#tool-achievement-tracker details');
+  (home || document.querySelector('#official-tools') || document.body).append(panel);
+
+  // A second Start Project button beside "Release the goldfish" opens the tool and shows an idea.
+  const actions = document.querySelector('.aquarium-actions');
+  if (actions && home) {
+    const quick = E('button', { type: 'button', className: 'ach-start', textContent: 'Start Project' });
+    quick.onclick = () => { home.open = true; renderProject(); panel.scrollIntoView({ block: 'start' }); startBtn.focus(); };
+    actions.append(quick);
+  }
+})();
+</script>
+<!--achievements-end-->
 <div data-astra-shared-footer style="margin:24px auto"><astra-footer date="2026-10-14"></astra-footer></div><script>/* Shared footer-template v1.0. Made by Astra; OpenAI Codex GPT-6, 2026-10-14. */
 (() => {
   if (customElements.get('astra-footer')) return;
