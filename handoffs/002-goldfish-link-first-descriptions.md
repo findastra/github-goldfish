@@ -11,7 +11,7 @@ The link is where you *use* the thing: its live website (GitHub Pages or other h
 download (latest release) when it is a program. The same URL goes in the repo's **Website**
 field (`homepage`). Example, as done on 2026-10-09:
 
-- `findastra/fuzzbois`: description `👉 https://findastra.github.io/fuzzbois/ — Make your Fuzzboi: …`, Website `https://findastra.github.io/fuzzbois/`.
+- `findastra/fuzzboi-factory`: description `👉 https://findastra.github.io/fuzzboi-factory/ — Make your Fuzzboi: …`, Website `https://findastra.github.io/fuzzboi-factory/`.
 
 1. The convention is already written in AGENTS.md "House conventions" (this card added it).
 2. Teach the engine, with tests, including "does not fire" cases:
