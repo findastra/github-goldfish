@@ -512,7 +512,7 @@ const Goldfish = (() => {
   // Pet and job, nothing else (Astra, 2026-10-16): N. **Pet** -- what it does [status]. Beneath it, as sub-bullets:
   // its home first (- [`the-farm`](page) -- *The Farm*, the pet program), then its repo, then its tools.
   const PET_JOB_LINE = /^(\d+)\.\s+\*\*([^*]+)\*\*\s+--\s+(.*)$/;
-  const HOME_SUB = /^\s+[-*]\s+(?:\[`[^`]+`\]\([^)]*\)|`[^`]+`(?:\s+\*\(private\)\*)?)\s+--\s+(?:\*([^*]+)\*, the pet program|pet program, not named yet)/;
+  const HOME_SUB = /^\s+[-*]\s+(?:\[`[^`]+`\]\([^)]*\)|`[^`]+`(?:\s+\*\(private\)\*)?)\s+--\s+(?:\*([^*]+)\*, the pet program|pet program(?: and its repo)?, not named yet)/;
   const REPO_SUB = /^\s+[-*]\s+(?:\[`([^`]+)`\]\([^)]*\)|`([^`]+)`\s+\*\(private\)\*)\s+--\s+/;
   const PLACE_WORDS = /\b(kingdom|house|station|room|den|nest|ring|farm|casino|gates|doghouse|shop|hive|tavern|lair|mold|perch|jungle|iceberg|tower|clinic|desk|hq|press|closet|kennel|shed|aquarium|cage|barn|garden|pond|burrow|library|site|website)$/i;
   // A job phrase before a colon ("organizes your mail: …") is not a category label.
@@ -536,7 +536,8 @@ const Goldfish = (() => {
         for (let k = i + 1; k < rows.length && /^\s+[-*]\s/.test(rows[k]); k++) subs.push(rows[k]);
         const h = subs.length ? HOME_SUB.exec(subs[0]) : null;
         if (h) home = h[1] ? h[1].trim() : null;
-        const r = subs.slice(h ? 1 : 0).map((x) => REPO_SUB.exec(x)).find(Boolean);
+        // One sub-bullet can be both the home and the repo when they share a name (spoonfed).
+        const r = subs.slice(h && !/and its repo/.test(subs[0]) ? 1 : 0).map((x) => REPO_SUB.exec(x)).find(Boolean);
         if (r) repo = r[1] || r[2];
         if (!h) add('Organizational', 'warn', `README.md #${num} ${pet}`, `Pet #${num} has no home sub-bullet beneath it.`, { line, fix: 'First sub-bullet: - [`home-name`](page) -- *Home*, the pet program (or `pet-program-N` -- pet program, not named yet).' });
       } else if (pf) { num = +pf[1]; pet = pf[2].trim(); home = pf[3] ? pf[3].trim() : null; repo = pf[4] || pf[5]; rest = pf[6].trim(); }

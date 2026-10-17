@@ -482,6 +482,8 @@ test('roster: the pet line holds the pet and its job; home, repo and tools are s
   assert.equal(rost(fs).length, 0, 'the new shape is clean');
   const unnamed = run([prof('3. **Chat Rat** -- saves your chats\n   - `pet-program-3` -- pet program, not named yet\n   - [`chat-rat`](https://github.com/me/chat-rat) -- Chat Rat\'s repo'), repo('chat-rat')]);
   assert.ok(has(unnamed, /no home: #3 Chat Rat/), 'an unnamed home is still reported');
+  const both = run([prof('4. **Sugarcube** -- helps choose where to eat\n   - [`spoonfed`](https://github.com/me/spoonfed) -- *Spoonfed*, the pet program and its repo'), repo('spoonfed')]);
+  assert.equal(rost(both).length, 0, 'one sub-bullet can be the home and the repo');
   assert.ok(has(run([prof('3. **Chat Rat** -- saves your chats')]), /no home sub-bullet beneath it/));
   assert.ok(has(run([prof('1. **Chat Rat** · *Chat Nest* · [`a`](https://github.com/me/a) -- saves your chats'), repo('a')]), /home and repo sit on the pet line/), 'the earlier one-line shape is a quiet note');
 });
