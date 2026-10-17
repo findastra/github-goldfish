@@ -34,7 +34,7 @@
 - Line shape (Astra, 2026-10-16): the pet name and what it does, then the home (pet program), repo and tools as sub-bullets:
   ```
   1. **Friendly Farmer** -- organizes the pets ...
-     - [`the-farm`](page) -- *The Farm*, the pet program
+     - [`the-farm`](page) -- the pet program (the name is said once)
      - [`astras-pet-os`](https://github.com/findastra/astras-pet-os) -- Astra's PetOS home repo
      - [`the-kennel`](https://github.com/findastra/the-kennel) -- ...
   ```
