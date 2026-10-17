@@ -511,7 +511,8 @@ const Goldfish = (() => {
   const PET_FIRST_LINE = /^(\d+)\.\s+\*\*([^*]+)\*\*\s*·\s*(?:\*([^*]+)\*\s*·\s*)?(?:\[`([^`]+)`\]\([^)]*\)|`([^`]+)`\s+\*\(private\)\*)\s+--\s+(.*)$/;
   // Pet and job, nothing else (Astra, 2026-10-16): N. **Pet** -- what it does [status]. Beneath it, as sub-bullets:
   // its home first (- [`the-farm`](page) -- *The Farm*, the pet program), then its repo, then its tools.
-  const PET_JOB_LINE = /^(\d+)\.\s+\*\*([^*]+)\*\*\s+--\s+(.*)$/;
+  // The pet's name can be its own link, to its repo (Astra, 2026-10-16): N. **[Pet](https://github.com/me/repo)** -- job.
+  const PET_JOB_LINE = /^(\d+)\.\s+\*\*(?:\[([^\]]+)\]\(([^)]*)\)|([^*]+))\*\*\s+--\s+(.*)$/;
   // The home's name is said once, as its link text (Astra, 2026-10-16): - [`the-farm`](page) -- the pet program.
   const HOME_SUB = /^\s+[-*]\s+(?:\[`([^`]+)`\]\([^)]*\)|`([^`]+)`(?:\s+\*\(private\)\*)?)\s+--\s+(?:(?:\*([^*]+)\*, )?the pet program|pet program(?: and its repo)?, not named yet)/;
   const REPO_SUB = /^\s+[-*]\s+(?:\[`([^`]+)`\]\([^)]*\)|`([^`]+)`\s+\*\(private\)\*)\s+--\s+/;
@@ -532,14 +533,15 @@ const Goldfish = (() => {
       if (!m && !pf && !pj) return;
       let num, repo, pet, rest, home = null;
       if (pj) {
-        num = +pj[1]; pet = pj[2].trim(); rest = pj[3].trim(); repo = null;
+        num = +pj[1]; pet = (pj[2] || pj[4]).trim(); rest = pj[5].trim();
+        repo = pj[3] ? (/github\.com\/[^/]+\/([^/#?)]+)/.exec(pj[3]) || [])[1] || null : null;
         const subs = [];
         for (let k = i + 1; k < rows.length && /^\s+[-*]\s/.test(rows[k]); k++) subs.push(rows[k]);
         const h = subs.length ? HOME_SUB.exec(subs[0]) : null;
         if (h && !/not named yet/.test(subs[0])) home = (h[3] || h[1] || h[2]).trim();
         // One sub-bullet can be both the home and the repo when they share a name (spoonfed).
         const r = subs.slice(h && !/and its repo/.test(subs[0]) ? 1 : 0).map((x) => REPO_SUB.exec(x)).find(Boolean);
-        if (r) repo = r[1] || r[2];
+        if (r && !repo) repo = r[1] || r[2];
         if (!h) add('Organizational', 'warn', `README.md #${num} ${pet}`, `Pet #${num} has no home sub-bullet beneath it.`, { line, fix: 'First sub-bullet: - [`home-name`](page) -- the pet program (or `pet-program-N` -- pet program, not named yet).' });
       } else if (pf) { num = +pf[1]; pet = pf[2].trim(); home = pf[3] ? pf[3].trim() : null; repo = pf[4] || pf[5]; rest = pf[6].trim(); }
       else {

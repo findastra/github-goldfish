@@ -488,6 +488,13 @@ test('roster: the pet line holds the pet and its job; home, repo and tools are s
   assert.ok(has(run([prof('1. **Chat Rat** · *Chat Nest* · [`a`](https://github.com/me/a) -- saves your chats'), repo('a')]), /home and repo sit on the pet line/), 'the earlier one-line shape is a quiet note');
 });
 
+test('roster: the pet name links to its repo, and the repo is not listed again (Astra, 2026-10-16)', () => {
+  const body = '1. **[Sugarcube](https://github.com/me/spoonfed)** -- helps choose where to eat\n   - [`spoonfed`](https://github.com/me/spoonfed) -- the pet program\n2. **Chip** -- reports the health of Data Dealer\n   - `data-dealer` -- the pet program';
+  const fs = run([prof(body), repo('spoonfed')]);
+  assert.equal(rost(fs).length, 0, 'clean');
+  assert.ok(has(run([prof('1. **[Sugarcube](https://github.com/me/spoonfed)** -- helps choose where to eat')]), /no home sub-bullet/), 'still needs a home');
+});
+
 test('roster: placeholder name, swapped pet and home, status and category in the home slot', () => {
   const body = [
     '1. [`a`](https://github.com/me/a) -- **pet-program-77-icon-77** · triages tickets',
