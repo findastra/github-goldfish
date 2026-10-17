@@ -114,3 +114,16 @@ Current Cage artwork is bundled in `art/` and indexed in `sprite-20261008.json`.
 Source version `0.2.0-20261008`, immutable tag [v0.2.0-20261008](https://github.com/findastra/github-goldfish/tree/v0.2.0-20261008). Publication checks are recorded in `docs/publications-20261008.md`; source publication does not establish live hosting.
 
 Desktop appearance draft updated 2026-10-11: see [desktop details](desktop-pet-20261011.json). This changes the desktop pet, not application features.
+
+## project-image-generator
+
+Finds the best pictures in every public repo of an account, screenshots each live site, and reports which repos need
+pictures (Flash Audit A55: every repo page shows several real pictures; creative projects at least three). Portfolio
+Puffer uses it to fill the portfolio.
+
+```
+node scripts/project-image-generator-20261017.mjs findastra --out <folder> --js <portfolio>/project-images.js --screenshots
+```
+
+Limits: it only finds pictures that are already committed and screenshots public https pages; it does not draw, render
+3D scenes or take in-world VRChat pictures yet. Set `GITHUB_TOKEN` to avoid GitHub's 60-calls-an-hour limit.
