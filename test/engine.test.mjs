@@ -446,11 +446,22 @@ const rost = (fs) => fs.filter((f) => f.repo === '(pet roster)');
 
 test('roster: clean pet list raises nothing and stays quiet', () => {
   const body = [
-    "1. [`astras-pet-os`](https://github.com/me/astras-pet-os) -- **Friendly Farmer** · *The Farm*: organizes the pets and lists what needs Astra's (L4) attention.",
-    '2. [`github-goldfish`](https://github.com/me/github-goldfish) -- **GitHub Goldfish** · *GitHub Aquarium*: swims through every public word on the account. [not connected yet]',
+    "1. **Friendly Farmer** · *The Farm* · [`astras-pet-os`](https://github.com/me/astras-pet-os) -- organizes the pets and lists what needs Astra's (L4) attention.",
+    '2. **GitHub Goldfish** · *GitHub Aquarium* · [`github-goldfish`](https://github.com/me/github-goldfish) -- swims through every public word on the account. [not connected yet]',
   ].join('\n');
   const fs = run([prof(body), repo('astras-pet-os'), repo('github-goldfish')]);
   assert.equal(rost(fs).length, 0);
+});
+
+test('roster: pet first (Astra, 2026-10-16); a repo-first line is flagged, and pet-first lines read the same', () => {
+  const old = run([prof('1. [`a`](https://github.com/me/a) -- **Chat Rat** · *Chat Nest*: saves your chats.'), repo('a')]);
+  assert.ok(has(old, /starts with its repo, not the pet/));
+  const neu = run([prof('1. **Chat Rat** · [`a`](https://github.com/me/a) -- planned: saves your chats'), repo('a')]);
+  assert.ok(!has(neu, /starts with its repo/));
+  assert.ok(has(neu, /status \("planned"\)/), 'the other roster rules still read pet-first lines');
+  assert.ok(has(run([prof('1. **Chat Rat** · [`a`](https://github.com/me/a) -- saves your chats'), repo('a')]), /no home: #1 Chat Rat/));
+  const priv = run([prof('1. **Chip** · *Data Dealer* · `data-dealer` *(private)* -- reports the health of Data Dealer.'), repo('me')]);
+  assert.equal(rost(priv).length, 0, 'a private pet-first line with a home is clean');
 });
 
 test('roster: placeholder name, swapped pet and home, status and category in the home slot', () => {
