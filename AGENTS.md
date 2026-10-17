@@ -14,17 +14,17 @@ A single-file browser app (`index.html`) plus a small command-line wrapper. It f
 - **Public-facing credit is Astra.** Keep work information (including any employer's name) out of this repo.
 - **Every new check needs a test** in `test/engine.test.mjs`, including a "does not fire" case (code blocks, URLs, placeholders such as `<you>`).
 - **Prefer a quiet check to a noisy one.** A false alarm on a clean account costs trust. When unsure, use severity `note`.
-- **`sprite.json` is the source of truth** for the Goldfish's sprite (32×32, nine moods), copied from the Cage repo's art. After editing it run `node scripts/sync-sprite.mjs`; a test fails if they drift. Do not redraw it by hand here; the style lives in `astras-pet-apps/scripts/pets-art.mjs`.
+- **`sprite.json` is the source of truth** for the Goldfish's sprite (32×32, nine moods), copied from the Cage repo's art. After editing it run `node scripts/sync-sprite.mjs`; a test fails if they drift. Do not redraw it by hand here; the style lives in `astras-pet-os/scripts/pets-art.mjs`.
 - Finding categories are exactly: Document control, Blatant, Organizational, Systemic. Severities: error, warn, note.
 - Claims about the present need a source or a date. Say plainly what is not done (see README "Limits").
 
 ## House conventions the goldfish enforces (and the repo itself follows)
 - Repo and folder names: lowercase words joined by hyphens. README title is the same words in Title Case.
 - **Link first in every description** (Astra, 2026-10-09): a repo's GitHub description starts with the link to where you use it (live website, or the download for a program), and the Website field holds the same URL, e.g. `👉 https://findastra.github.io/fuzzbois/ — …`. No website yet is a note, not an error. Checks: [handoffs/002](handoffs/002-goldfish-link-first-descriptions.md).
-- Pet words: one name per part of a pet app (pet, app, desktop pet, bubble, quick chat, app icon, pet well). The Goldfish reads the list from `words` in the Cage's `pets.json` and reports old names as notes; [PET-WORDS.md](https://github.com/findastra/astras-pet-apps/blob/main/PET-WORDS.md) explains them. Never hard-code the list here: the Farmer owns it.
+- Pet words: one name per part of a pet app (pet, app, desktop pet, bubble, quick chat, app icon, pet well). The Goldfish reads the list from `words` in the Cage's `pets.json` and reports old names as notes; [PET-WORDS.md](https://github.com/findastra/astras-pet-os/blob/main/PET-WORDS.md) explains them. Never hard-code the list here: the Farmer owns it.
 - Every pet repo: `pet.json`, topic `pet-app`, README opening with `*A pet app by Astra.*`, `AGENTS.md`, `CLAUDE.md`, a 32×32 sprite with nine moods, the model and version recorded.
 - Astra's profile README layout (header, socials, `--` separators, numbered pet apps): [docs/profile-style-20261009.md](docs/profile-style-20261009.md). Follow it when suggesting profile fixes; never suggest decoration she did not ask for.
-- Pets live in the Cage: <https://github.com/findastra/astras-pet-apps>. Add or update this pet's row in its `pets.json` and README table when this repo changes status (hatching, growing, grown).
+- Pets are registered in the hub, Astra's PetOS: <https://github.com/findastra/astras-pet-os>. Add or update this pet's row in its `pets.json` and README table when this repo changes status (hatching, growing, grown).
 
 ## Running things
 - Tests: `node --test "test/*.test.mjs"`

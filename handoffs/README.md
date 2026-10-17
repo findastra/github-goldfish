@@ -1,7 +1,7 @@
 # Handoffs
 
 Task cards for whichever assistant picks them up. Format and rules: the Cage's
-[skills/handoff/SKILL.md](https://github.com/findastra/astras-pet-apps/blob/main/skills/handoff/SKILL.md).
+[skills/handoff/SKILL.md](https://github.com/findastra/astras-pet-os/blob/main/skills/handoff/SKILL.md).
 
 | Card | For | Status |
 | --- | --- | --- |
