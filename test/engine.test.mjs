@@ -189,10 +189,10 @@ test('systemic: Cage registry both directions', () => {
 });
 
 test('registry entries marked published:false are not errors; the Cage repo itself is audited as a pet', () => {
-  const reg = { pets: [{ repo: 'not-yet', published: false }, { repo: 'astras-pet-apps' }] };
-  const fs = run([repo('astras-pet-apps', { topics: [], files: { 'README.md': '# Astras Pet Apps\n', 'pet.json': '{"pet":"Friendly Farmer"}' } })], { registry: reg });
+  const reg = { pets: [{ repo: 'not-yet', published: false }, { repo: 'astras-pet-os' }] };
+  const fs = run([repo('astras-pet-os', { topics: [], files: { 'README.md': '# Astras Pet Apps\n', 'pet.json': '{"pet":"Friendly Farmer"}' } })], { registry: reg });
   assert.ok(!has(fs, /"not-yet", which does not exist/));
-  assert.ok(has(fs, /not the GitHub topic/, 'astras-pet-apps'));
+  assert.ok(has(fs, /not the GitHub topic/, 'astras-pet-os'));
 });
 
 test('systemic: mixed apostrophes and dashes are reported once for the account', () => {
@@ -231,7 +231,7 @@ test('collect: paging, rate limit message, missing user', async () => {
   const data = await G.collect('me', { fetchFn });
   assert.equal(data.repos.length, 1);
   assert.equal(data.repos[0].files['README.md'], '# r\n');
-  assert.ok(data.notes.some((n) => /No astras-pet-apps/.test(n)));
+  assert.ok(data.notes.some((n) => /No astras-pet-os/.test(n)));
 });
 
 /* ---------- private repos ---------- */
