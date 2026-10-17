@@ -23,7 +23,7 @@
 - No sparkle dividers between sections.
 - Each repo: ``- [`repo`](https://github.com/findastra/repo) -- description``. The separator is `--`. Never swap in ✧, ✦ or other decoration.
 - Private repos are not linked: ``- `repo` *(private)* -- description``.
-- **Pet apps** are a numbered running list in the order they joined the Cage (the order of `pets.json`, then newer pets): ``N. [`repo`](link) -- **Pet name** · description``. Every pet app belongs in this list, not in the other sections.
+- **Pet apps** are a numbered running list by pet program number (`pet-programs.json` in astras-pet-os), pet first: ``N. **Pet** · *Home* · [`repo`](link) -- what the pet does [status]`` (see Pet roster below). Every pet app belongs in this list, not in the other sections.
 
 ## In general
 - Only add decoration Astra asked for. Ask before changing the look.
@@ -31,9 +31,9 @@
 ## Pet roster (Astra's corrections, 2026-10-16)
 *Checked first in every audit and pinned to the top of the report as `(pet roster)`. Recorded with Claude Opus 5.5 (`claude-opus-5-5`).*
 
-- Line shape: ``N. [`repo`](link) -- **Pet** · *Home*: what the pet does   [status]``.
+- Line shape: ``N. **Pet** · *Home* · [`repo`](link) -- what the pet does [status]``. Changed by Astra on 2026-10-16: **the pet name is first in every listing**, then its home, then its repo. A line that starts with the repo is flagged.
 - **Pet first, home second.** A place (Kingdom, Station, Den, Casino, site…) in the pet slot means they are switched: Astra fixed `File Kingdom · File Master` to `File Master · File Kingdom`, and `Dubstep Gunsmith` (a catalog site) is a home waiting for its pet.
-- **Every pet has a home.** No home is reported once, as a list.
+- **Every pet has a home.** No home is reported once, as a list. With no home yet, the line is ``N. **Pet** · [`repo`](link) -- what the pet does``.
 - **No placeholder names** (`pet-program-77-icon-77`).
 - **Status is not a home or a job.** `planned:` / `not decided yet:` in the home slot, or "… are planned" in the job, gets rewritten as what the pet does; status goes in `[brackets]` at the end (`[not connected to any mail account yet]`).
 - **A category is not a home** (`tasks:`, `AI cost:`, `network:`).
@@ -42,4 +42,4 @@
 - **Counts as floors**: "26 dated tools" became "30+ dated tools".
 - **No editing markers in public** (`[? …]`, `[Suggest one?]`).
 - **Numbers**: one pet per number; a repo that calls itself "pet program (#N)" belongs in the numbered list; hatched pets come off the seeds line.
-- The list is written by the Friendly Farmer from `astras-pet-apps/pet-programs.json` (`icon`, `program`, `mini_descriptor.text`). Fix the JSON there, not just the README, or the next profile round puts the old text back.
+- The list is written by the Friendly Farmer from `astras-pet-os/pet-programs.json` (`icon`, `program`, `mini_descriptor.text`). Fix the JSON there, not just the README, or the next profile round puts the old text back. The Farmer's `pet-organizer` and `pet-finder` tricks (astras-pet-os `skills/`) do this. The round moves `Planned:` and `Not decided yet:` out of the job into `[planned]` and `[job not chosen yet]` by itself.
