@@ -13,6 +13,14 @@ A little pixel goldfish that swims through every word in a GitHub account's repo
 
 Every finding says where it is (file and line when it can), what is wrong, and a suggested fix. Severity is **error**, **warning** or **note**. The goldfish's face follows the result: happy when clean, calm with only warnings, worried with a few errors, alarmed with more than five, curious while it works, and sad if it could not finish. It swims and hops around its tank the whole time.
 
+## Pictures
+
+![GitHub Goldfish's program page: the goldfish in its pond, ready to audit the findastra account, with the optional token field](docs/images/github-goldfish-program-page-20261017.png)
+
+GitHub Goldfish's [program page](https://findastra.github.io/astras-pet-os/apps/github-goldfish-20261008.html) as published in Astra's PetOS.
+
+Screenshots taken 2026-10-17 with GitHub Goldfish's [project-image-generator](https://github.com/findastra/github-goldfish#project-image-generator); added with Claude Opus 5.5 (`claude-opus-5-5`), 2026-10-17.
+
 ## Run it
 
 **In a browser:** open `index.html`, leave the account as `findastra` (or type another), paste a token for that account if you want private repos checked too, press **Release the goldfish**. Untick **Include private repos** for a public-only run. Tested when served from `localhost` (`python -m http.server`). Opening the file directly should also work but has not been tested.
