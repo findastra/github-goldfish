@@ -15,10 +15,11 @@ import path from 'node:path';
 import os from 'node:os';
 import { parseArgs } from 'node:util';
 import { execFile } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync, unlinkSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
 export const TOOL = 'github-aquarium-v1.0-project-image-generator-v1.0';
+export const BLANK_BYTES = 10000; // a 1280x800 screenshot smaller than this is one flat colour
 const IMAGE = /\.(png|jpe?g|gif|webp)$/i;
 const CREATIVE = /\b(world|vrchat|unity|art|drawn|draw|game|website|site|characters?|gif|meme|music|dance|avatar|3d|map|pfd)\b/i;
 
@@ -34,7 +35,7 @@ export function scoreImage(file, size = 0, readmeRefs = new Set()) {
   if (/(^|\/)(frames|sprites?|desktop-art|pet-art|draft-art)\//.test(p) || /(^|[-_])(idle|blink|happy|curious|worried|sad|sick|alarmed|sleep)(-\d{8})?\.png$/.test(name)) add(-70, 'pet art (mood frame)');
   if (/(^|\/)(art\/sheets|sheets)\//.test(p) || /(^|[-_])(sheet|roster|mood-sheet)(-\d{8})?\.png$/.test(name)) add(-70, 'pet art (sheet)');
   if (/(^|\/)(icons?|favicons?)\//.test(p) || /(logo|icon|favicon)/.test(name)) add(-40, 'icon or logo');
-  if (/(^|\/)assets\//.test(p) || /(albedo|normal|roughness|metallic|_ao|occlusion|emission|height|mask|_mra|lightmap|texture)/.test(name)) add(-60, 'game texture, not a picture');
+  if (/(^|\/)assets\//.test(p) || /(albedo|normal|roughness|metallic|_ao\b|occlusion|emission|height|mask|_mra|lightmap|texture)/.test(name)) add(-60, 'game texture, not a picture');
   if (/(^|\/)(node_modules|\.github|test|tests|fixtures?)\//.test(p)) add(-60, 'test or tooling');
   if (size) add(Math.min(20, Math.round(Math.log2(Math.max(1, size / 4096)) * 3)), 'size');
   return { score, why };
@@ -69,12 +70,22 @@ export function pickImages(tree, readme = '', max = 6) {
 
 export const isCreative = (repo) => CREATIVE.test(`${repo.name} ${repo.description || ''}`);
 
-/** Flash Audit A55 for one repo. */
-export function a55(repo, images, screenshot) {
-  const count = images.filter((i) => i.score > 0).length + (screenshot ? 1 : 0);
-  if (!count) return { status: 'missing', note: 'No real picture of the project (pet art and icons do not count).' };
-  if (isCreative(repo) && count < 3) return { status: 'too-few', note: `Creative project with ${count} picture(s); A55 asks for at least three, including in-world or 3D views.` };
-  return { status: 'pass', note: `${count} picture(s).` };
+/** Flash Audit A55 for one repo. Only pictures committed in the repo count; screenshots this tool takes are
+ *  pictures ready to add (shots), not a pass. */
+export function a55(repo, images, shots = 0) {
+  const count = images.filter((i) => i.score > 0).length;
+  const ready = shots ? ` ${shots} screenshot(s) ready to add.` : '';
+  if (!count) return { status: 'missing', note: 'No real picture committed in the repo (pet art and icons do not count).' + ready };
+  if (isCreative(repo) && count < 3) return { status: 'too-few', note: `Creative project with ${count} committed picture(s); A55 asks for at least three, including in-world or 3D views.` + ready };
+  return { status: 'pass', note: `${count} committed picture(s).` };
+}
+
+/** A page this tool may open: an https page on the owner's github.io site, or a local .html file that exists. */
+export function allowedPage(owner, target) {
+  if (/^https:\/\//i.test(target)) {
+    try { return new URL(target).host.toLowerCase() === `${owner.toLowerCase()}.github.io`; } catch { return false; }
+  }
+  return /\.html?$/i.test(target) && path.isAbsolute(target) && existsSync(target);
 }
 
 // ---------- GitHub (read-only) ----------
@@ -109,17 +120,24 @@ export function findBrowser() {
 }
 
 function screenshot(browser, url, file) {
-  // Only https pages on github.io (or the repo's own homepage) are opened; nothing is clicked or typed.
+  // Only allowed pages are opened (allowedPage, siteOf); nothing is clicked or typed.
+  // WebGL runs on the software renderer so 3D pages (the System Map) draw in headless mode.
   return new Promise((resolve) => {
     const profile = path.join(os.tmpdir(), 'goldfish-shot-profile');
-    execFile(browser, ['--headless=new', '--disable-gpu', '--hide-scrollbars', `--user-data-dir=${profile}`, '--window-size=1280,800',
-      '--virtual-time-budget=6000', `--screenshot=${file}`, url], { timeout: 45000 }, () => resolve(existsSync(file) ? file : null));
+    const target = /^https:/i.test(url) ? url : pathToFileURL(url).href;
+    execFile(browser, ['--headless=new', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--hide-scrollbars', `--user-data-dir=${profile}`,
+      '--window-size=1280,800', '--virtual-time-budget=8000', `--screenshot=${file}`, target], { timeout: 60000 }, () => {
+      // An almost empty PNG is a blank page (nothing rendered); do not keep it as a picture.
+      if (existsSync(file) && statSync(file).size < BLANK_BYTES) { unlinkSync(file); return resolve(null); }
+      resolve(existsSync(file) ? file : null);
+    });
   });
 }
 
 export const siteOf = (owner, repo) => {
   const h = (repo.homepage || '').trim();
-  if (/^https:\/\//i.test(h)) return h;
+  // A homepage that is only a github.com page is the repo itself, not a site (headless browsers get an empty shell).
+  if (/^https:\/\//i.test(h) && !/^https:\/\/(www\.)?github\.com\//i.test(h)) return h;
   if (repo.has_pages) return `https://${owner.toLowerCase()}.github.io/${repo.name}/`;
   return null;
 };
@@ -127,7 +145,7 @@ export const siteOf = (owner, repo) => {
 async function main() {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {
     out: { type: 'string' }, js: { type: 'string' }, repos: { type: 'string' }, screenshots: { type: 'boolean' },
-    max: { type: 'string' }, only: { type: 'string', multiple: true },
+    max: { type: 'string' }, only: { type: 'string', multiple: true }, pages: { type: 'string' },
   } });
   const owner = positionals[0] || 'findastra', token = process.env.GITHUB_TOKEN || '', max = Number(values.max) || 6;
   const out = path.resolve(values.out || path.join(os.tmpdir(), 'project-images'));
@@ -136,7 +154,9 @@ async function main() {
     : (await gh(`https://api.github.com/users/${owner}/repos?per_page=100&sort=pushed`, token)) || [];
   repos = repos.filter((r) => !r.private && !r.fork && !r.archived);
   if (values.only?.length) repos = repos.filter((r) => values.only.includes(r.name));
-  const browser = values.screenshots ? findBrowser() : null;
+  // --pages <file.json>: { "<repo>": ["https://<owner>.github.io/...", "<absolute path to a local app .html>"] }
+  const pages = values.pages ? JSON.parse(await fs.readFile(values.pages, 'utf8')) : {};
+  const browser = (values.screenshots || values.pages) ? findBrowser() : null;
   if (values.screenshots && !browser) console.error('No Edge or Chrome found; skipping screenshots.');
   const date = new Date().toISOString().slice(0, 10).replaceAll('-', '');
   const results = [];
@@ -150,10 +170,16 @@ async function main() {
       const file = path.join(out, `${repo.name}-site-${date}.png`);
       shot = (await screenshot(browser, site, file)) ? path.basename(file) : null;
     }
-    const audit = a55(repo, images, shot);
-    process.stderr.write(`${images.length} picture(s)${shot ? ' + site screenshot' : ''} · A55 ${audit.status}\n`);
+    const pageShots = [];
+    for (const [i, target] of (browser ? pages[repo.name] || [] : []).entries()) {
+      if (!allowedPage(owner, target)) { process.stderr.write(`(skipped ${target}) `); continue; }
+      const file = path.join(out, `${repo.name}-page-${i + 1}-${date}.png`);
+      if (await screenshot(browser, target, file)) pageShots.push({ file: path.basename(file), source: /^https:/i.test(target) ? target : 'local ' + path.basename(target) });
+    }
+    const audit = a55(repo, images, (shot ? 1 : 0) + pageShots.length);
+    process.stderr.write(`${images.length} picture(s)${shot ? ' + site' : ''}${pageShots.length ? ` + ${pageShots.length} page(s)` : ''} · A55 ${audit.status}\n`);
     results.push({ name: repo.name, description: repo.description || '', language: repo.language || '', pushed_at: repo.pushed_at, homepage: site,
-      creative: isCreative(repo), images: images.map(({ path: p, url, size, score, why }) => ({ path: p, url, size, score, why })), screenshot: shot, a55: audit });
+      creative: isCreative(repo), images: images.map(({ path: p, url, size, score, why }) => ({ path: p, url, size, score, why })), screenshot: shot, pages: pageShots, a55: audit });
   }
   const manifest = { tool: TOOL, owner, generated: new Date().toISOString(), repos: results };
   const file = path.join(out, `project-images-${date}.json`);

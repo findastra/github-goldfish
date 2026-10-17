@@ -125,5 +125,7 @@ Puffer uses it to fill the portfolio.
 node scripts/project-image-generator-20261017.mjs findastra --out <folder> --js <portfolio>/project-images.js --screenshots
 ```
 
+`--pages <file.json>` (`{ "<repo>": ["https://findastra.github.io/...", "<absolute path to a local app .html>"] }`) also screenshots each pet's program page and the System Map. Only pages on the owner's github.io site or local .html files that exist are opened. Blank screenshots are dropped. A55 counts only pictures committed in the repo; screenshots are reported as ready to add.
+
 Limits: it only finds pictures that are already committed and screenshots public https pages; it does not draw, render
 3D scenes or take in-world VRChat pictures yet. Set `GITHUB_TOKEN` to avoid GitHub's 60-calls-an-hour limit.
